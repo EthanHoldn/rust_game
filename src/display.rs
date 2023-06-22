@@ -32,11 +32,13 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     let target_frame_time = Duration::from_secs(1) / target_fps;
     let mut map = world::Map{
         size: 750,
-        image: world::generate(750),
+        image: Vec::<u8>::new(),
         camera_x_offset: 0,
         camera_y_offset: 0,
         camera_zoom: 0.0,
     };
+
+    map.generate();
 
     let mut i = 0;
     let texture_creator = canvas.texture_creator();
