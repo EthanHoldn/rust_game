@@ -16,12 +16,7 @@ pub(crate) struct Map {
     pub size: u32,              // Size of pixel array
     pub terrain: Vec<tile_type>,
     pub plain_thresh: f32,
-    pub mountain_thresh: f32,
-
-    // Move to camera
-    pub camera_x_offset: i32,   // Camera pos and zoom
-    pub camera_y_offset: i32,
-    pub camera_zoom: f32,       
+    pub mountain_thresh: f32 
 }
 
 // Class methods for Map
@@ -33,7 +28,7 @@ impl Map {
         
         // scale factor for perlin noise 
         // bigger number means the changes in terrain are more spread out
-        let scale: f64 = 30.0;
+        let scale:f64 = 30.0;
 
         // For each pixel
         for i in 0 .. (self.size * self.size){
