@@ -1,1 +1,1 @@
-/home/alex/Documents/forest_fire/rust_game/target/debug/game: /home/alex/Documents/forest_fire/rust_game/src/display.rs /home/alex/Documents/forest_fire/rust_game/src/main.rs /home/alex/Documents/forest_fire/rust_game/src/world.rs
+/Users/ethanholden/Desktop/Rust/game/target/debug/game: /Users/ethanholden/Desktop/Rust/game/src/display.rs /Users/ethanholden/Desktop/Rust/game/src/main.rs /Users/ethanholden/Desktop/Rust/game/src/world.rs
