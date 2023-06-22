@@ -6,9 +6,8 @@ use sdl2::{pixels::PixelFormatEnum, render::{Canvas, Texture}, video::Window};
 pub(crate) struct Map {
     pub image: Vec<u8>,         // Array of pixels
     pub size: u32,              // Size of pixel array
-    pub camera_x_offset: i32,   // Camera pos and zoom
-    pub camera_y_offset: i32,
-    pub camera_zoom: f32,       
+
+    //pub vegitation_grid: ,    
 }
 
 // Class methods for Map
@@ -25,7 +24,7 @@ impl Map {
         
         // scale factor for perlin noise 
         // bigger number means the changes in terrain are more spread out
-        let scale:f64 = 30.0;
+        let scale:f64 = 60.0;
 
         // For each pixel
         for i in 0 .. (self.size * self.size){
