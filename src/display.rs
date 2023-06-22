@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::world;
+use crate::world::{self, tile_type};
 
 use std::time::{Duration, Instant};
 use sdl2::EventPump;
@@ -34,13 +34,15 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     //map data
     let mut map = world::Map{
         size: 750,
-        image: Vec::<u8>::new(),
+        terrain: Vec::<tile_type>::new(),
+        plain_thresh: 0.45,
+        mountain_thresh: 1.6,
         camera_x_offset: 0,
         camera_y_offset: 0,
         camera_zoom: 0.0,
     };
 
-    map.generate_image();
+    map.create_image();
 
     let mut i = 0;
 
@@ -52,7 +54,7 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
     .unwrap();
 
-    map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
+    map_texture.update(None, &map.create_image(), map.size as usize * 4).unwrap();
     
     //frame rate calculation
     let mut previous_frame_start = Instant::now();
@@ -71,10 +73,10 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
         texture_creator
         .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
         .unwrap();
-        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
+        map_texture.update(None, &map.create_image(), map.size as usize * 4).unwrap();
 
         canvas.set_draw_color(Color::RGB(50, 50, 50));
-        canvas.copy(&map_texture, None, Rect::new(map.camera_x_offset, map.camera_y_offset, 2000, 2000)).unwrap();
+        canvas.copy(&map_texture, None, Rect::new(map.camera_x_offset, map.camera_y_offset, 500, 500)).unwrap();
 
         canvas.present();
         let elapsed =  previous_frame_start.elapsed();
@@ -91,12 +93,16 @@ fn inputs(event_pump: &mut EventPump, map: &mut world::Map) -> bool{
     for event in event_pump.poll_iter() {
         match event {
             Event::Quit {..} |
+            Event::KeyDown { keycode: Some(Keycode::Q), .. } |
             Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                 return true;
                 
             },
             Event::KeyDown { keycode: Some(Keycode::W), .. } => {
                 map.camera_x_offset +=1;
+            },
+            Event::KeyDown { keycode: Some(Keycode::E), .. } => {
+                map.create_image();
             },
             _ => {}
         }
