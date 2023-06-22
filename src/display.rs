@@ -30,6 +30,8 @@ pub(crate) fn init() {
 fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     let target_fps = 60;
     let target_frame_time = Duration::from_secs(1) / target_fps;
+
+    //map data
     let mut map = world::Map{
         size: 750,
         image: Vec::<u8>::new(),
@@ -41,13 +43,22 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     map.generate();
 
     let mut i = 0;
+
+    //used to generate textures from a Vec<u8>
     let texture_creator = canvas.texture_creator();
-    let mut texture = texture_creator
+
+    //map image texture
+    let mut map_texture = texture_creator
     .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
     .unwrap();
-    texture.update(None, &map.image, map.size as usize * 4).unwrap();
+
+    map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
     
+    //frame rate calculation
     let mut previous_frame_start = Instant::now();
+
+    //main  window rendering loop
+    //all window related operations need to be done in here
     'running: loop {
         
         i = (i + 1) % 255;
@@ -60,10 +71,10 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
         texture_creator
         .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
         .unwrap();
-        texture.update(None, &map.image, map.size as usize * 4).unwrap();
+        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
 
         canvas.set_draw_color(Color::RGB(50, 50, 50));
-        canvas.copy(&texture, None, Rect::new(map.camera_x_offset, map.camera_y_offset, 2000, 2000)).unwrap();
+        canvas.copy(&map_texture, None, Rect::new(map.camera_x_offset, map.camera_y_offset, 2000, 2000)).unwrap();
 
         canvas.present();
         let elapsed =  previous_frame_start.elapsed();
