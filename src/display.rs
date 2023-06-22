@@ -40,7 +40,7 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
         camera_zoom: 0.0,
     };
 
-    map.generate();
+    map.generate_image();
 
     let mut i = 0;
 
