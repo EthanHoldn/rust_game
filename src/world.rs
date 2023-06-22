@@ -13,13 +13,18 @@ pub(crate) struct Map {
 
 // Class methods for Map
 impl Map {
+    //TODO: implement map data layer generations
+    pub fn generate_layers(&mut self) {
 
-    // Generate the map
-    pub fn generate(&mut self) {
+    }
+
+    // Generate the map image
+    pub fn generate_image(&mut self) {
         // Create noise instance, pixel array, and set scale
         let perlin: Perlin = Perlin::new(1);
         
-        // Unnecessary?
+        // scale factor for perlin noise 
+        // bigger number means the changes in terrain are more spread out
         let scale:f64 = 30.0;
 
         // For each pixel
