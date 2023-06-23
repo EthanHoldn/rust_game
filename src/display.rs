@@ -54,6 +54,7 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     };
 
     let mut camera = Camera { x_offset: 0, y_offset: 0, zoom: 0.0, movement_speed: 2 };
+        zoom_speed: 0.02,
 
     map.generate_layers();
     map.create_image();
@@ -134,7 +135,37 @@ fn inputs(event_pump: &mut EventPump, map: &mut world::Map, camera: &mut Camera,
         }
     }
     
-    
+    //camera movement
+    if key_states[66]{ // W  up
+        camera.y_offset += camera.movement_speed
+    }
+    if key_states[44]{ // A  up
+        camera.x_offset += camera.movement_speed
+    }
+    if key_states[62]{ // S  up
+        camera.y_offset -= camera.movement_speed
+    }
+    if key_states[47]{ // D  up
+        camera.x_offset -= camera.movement_speed
+    }
+    //camera zoom
+    if key_states[48]{ // E  zoom in
+
+        let relative_zoom_speed = camera.zoom_speed*camera.zoom;
+        camera.zoom += relative_zoom_speed;
+        camera.x_offset += (relative_zoom_speed*map.size as f32) * (((camera.x_offset-(camera.window_width/2.0))/camera.zoom)/(map.size as f32));
+        camera.y_offset += (relative_zoom_speed*map.size as f32) * (((camera.y_offset-(camera.window_height/2.0))/camera.zoom)/(map.size as f32));
+
+    }
+    if key_states[60]{ // Q  zoom out
+        let relative_zoom_speed = camera.zoom_speed*camera.zoom;
+        camera.zoom -= relative_zoom_speed;
+        camera.x_offset -= (relative_zoom_speed*map.size as f32) * (((camera.x_offset-(camera.window_width/2.0))/camera.zoom)/(map.size as f32));
+        camera.y_offset -= (relative_zoom_speed*map.size as f32) * (((camera.y_offset-(camera.window_height/2.0))/camera.zoom)/(map.size as f32));
+
+
+
+    }
     return false;
 }
 
