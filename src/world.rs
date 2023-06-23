@@ -2,19 +2,20 @@ use rand::prelude::*;
 use noise::{NoiseFn, Perlin};
 use sdl2::{pixels::PixelFormatEnum, render::{Canvas, Texture}, video::Window};
 
-pub enum tile_type {
-    invalid,
-    water,
-    grass,
-    brush,
-    tree,
-    mountain
+pub enum TileType{
+    Invalid,
+    Water,
+    Grass,
+    Brush,
+    Tree,
+    Mountain
 }
 
 // Map struct 
 pub(crate) struct Map {
     pub size: u32,              // Size of pixel array
-    pub terrain: Vec<tile_type>,
+    pub terrain: Vec<TileType>,
+    pub image: Vec<u8>,
     pub plain_thresh: f32,
     pub mountain_thresh: f32 
 }
@@ -42,50 +43,50 @@ impl Map {
 
             // Set color based on noise value
             if pln_stable >= 0.0 && pln_stable < 0.2 {//water
-                self.terrain.push(tile_type::water);
+                self.terrain.push(TileType::Water);
             } else if pln >= 0.2 && pln < 0.6 {//trees
-                self.terrain.push(tile_type::tree);
+                self.terrain.push(TileType::Tree);
             } else if pln >= 0.6 && pln < 0.8 {//brush
-                self.terrain.push(tile_type::brush);
+                self.terrain.push(TileType::Brush);
             } else if pln >= 0.8 {//grass
-                self.terrain.push(tile_type::grass);
+                self.terrain.push(TileType::Grass);
             } else {//MAP_ERROR
-                self.terrain.push(tile_type::invalid);
+                self.terrain.push(TileType::Invalid);
             }
 
         }
     }
 
     // Generate the map image
-    pub fn create_image(&mut self) -> Vec<u8> {
-        let mut image: Vec<u8> = Vec::<u8>::new();         // Array of pixels
+    pub fn create_image(&mut self){
         let mut rng: ThreadRng = rand::thread_rng();
-
+        self.image.clear();
         // Set color based on noise value
-        for tile in self.terrain.into_iter() {
-
+        
+        for tile in &self.terrain{
+            //let tile = self.terrain.get(i);
             // Create pixel color values 
             let r: f32;
             let g: f32;
             let b: f32;
 
             match tile {
-                tile_type::water => {
+                TileType::Water => {
                     r = 42.0;
                     g = 147.0 + rng.gen::<f32>() * 20.0;
                     b = 173.0;
                 } 
-                tile_type::tree => {//trees
+                TileType::Tree => {//trees
                     r = 83.0;
                     g = 138.0 + rng.gen::<f32>() * 20.0;
                     b = 28.0;
                 } 
-                tile_type::brush => {//brush
+                TileType::Brush => {//brush
                     r = 132.0;
                     g = 181.0 + rng.gen::<f32>() * 20.0;
                     b = 83.0;
                 }
-                tile_type::grass => {//grass
+                TileType::Grass => {//grass
                     r = 167.0 + rng.gen::<f32>() * 20.0;
                     g = 199.0;
                     b = 127.0;
@@ -98,14 +99,11 @@ impl Map {
             }
 
             // Push to list as flattened array
-            image.push((0.003921568627451*(r*r)) as u8);
-            image.push((0.003921568627451*(g*g)) as u8);
-            image.push((0.003921568627451*(b*b)) as u8);
-            image.push(255);//a
-
+            self.image.push((0.003921568627451*(r*r)) as u8);
+            self.image.push((0.003921568627451*(g*g)) as u8);
+            self.image.push((0.003921568627451*(b*b)) as u8);
+            self.image.push(255);//a
         }
-
-        return  image;
 
     }
 }

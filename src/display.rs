@@ -1,5 +1,5 @@
 extern crate sdl2;
-use crate::world::{self, tile_type};
+use crate::world::{self, TileType};
 
 use std::hash::Hash;
 use std::time::{Duration, Instant};
@@ -47,13 +47,15 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     //map data
     let mut map = world::Map{
         size: 750,
-        terrain: Vec::<tile_type>::new(),
+        terrain: Vec::<TileType>::new(),
+        image: Vec::<u8>::new(),
         plain_thresh: 0.0,
         mountain_thresh: 0.0,
     };
 
     let mut camera = Camera { x_offset: 0, y_offset: 0, zoom: 0.0, movement_speed: 2 };
 
+    map.generate_layers();
     map.create_image();
 
     let mut i = 0;
@@ -66,7 +68,7 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
     .unwrap();
 
-    map_texture.update(None, &map.create_image(), map.size as usize * 4).unwrap();
+    map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
     
     //frame rate calculation
     let mut previous_frame_start = Instant::now();
@@ -88,7 +90,8 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
         texture_creator
         .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
         .unwrap();
-        map_texture.update(None, &map.create_image(), map.size as usize * 4).unwrap();
+        
+        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
 
         canvas.set_draw_color(Color::RGB(50, 50, 50));
         canvas.copy(&map_texture, None, Rect::new(camera.x_offset, camera.y_offset, 2000, 2000)).unwrap();
@@ -110,19 +113,28 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
 
 
 fn inputs(event_pump: &mut EventPump, map: &mut world::Map, camera: &mut Camera, key_states:  &mut [bool; 238]) -> bool{
+    
+    //updates the array of all the keys that are currently held down
     for event in event_pump.poll_iter() {
         match event {
-            Event::Quit {..} |
-            Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                return true;
-                
-            },
-            Event::KeyDown { keycode: Some(Keycode::W), .. } => {
-                camera.x_offset +=1;
-            },
+            Event::Quit { .. } => return true,
+            Event::KeyDown { keycode: Some(key), .. } => {
+                // Key is pressed
+                if let Some(index) = keycode_to_index(key) {
+                    key_states[index] = true;
+                }
+            }
+            Event::KeyUp { keycode: Some(key), .. } => {
+                // Key is released
+                if let Some(index) = keycode_to_index(key) {
+                    key_states[index] = false;
+                }
+            }
             _ => {}
         }
     }
+    
+    
     return false;
 }
 
