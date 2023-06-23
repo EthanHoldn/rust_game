@@ -5,7 +5,7 @@ use sdl2::{pixels::PixelFormatEnum, render::{Canvas, Texture}, video::Window};
 // Map struct 
 pub(crate) struct Map {
     pub image: Vec<u8>,         // Array of pixels
-    pub size: u32,              // Size of pixel array
+    pub size: u32,              // Width/Height of pixel map
     pub camera_x_offset: i32,   // Camera pos and zoom
     pub camera_y_offset: i32,
     pub camera_zoom: f32,       
