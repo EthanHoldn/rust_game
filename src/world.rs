@@ -2,24 +2,33 @@ use rand::prelude::*;
 use noise::{NoiseFn, Perlin};
 use sdl2::{pixels::PixelFormatEnum, render::{Canvas, Texture}, video::Window};
 
+pub enum TileType{
+    Invalid,
+    Water,
+    Grass,
+    Brush,
+    Tree,
+    Mountain
+}
+
 // Map struct 
 pub(crate) struct Map {
-    pub image: Vec<u8>,         // Array of pixels
-    pub size: u32,              // Width/Height of pixel map
-    pub camera_x_offset: i32,   // Camera pos and zoom
-    pub camera_y_offset: i32,
-    pub camera_zoom: f32,       
+    pub size: u32,              // Size of pixel array
+    pub terrain: Vec<TileType>,
+    pub image: Vec<u8>,
+    pub plain_thresh: f32,
+    pub mountain_thresh: f32 
 }
 
 // Class methods for Map
 impl Map {
-
-    // Generate the map
-    pub fn generate(&mut self) {
+    //TODO: implement map data layer generations
+    pub fn generate_layers(&mut self) {
         // Create noise instance, pixel array, and set scale
         let perlin: Perlin = Perlin::new(1);
         
-        // Unnecessary?
+        // scale factor for perlin noise 
+        // bigger number means the changes in terrain are more spread out
         let scale:f64 = 30.0;
 
         // For each pixel
@@ -32,32 +41,61 @@ impl Map {
             let pln_stable: f64 = pln;
             pln = pln + rng.gen::<f64>()*0.1;
 
+            // Set color based on noise value
+            if pln_stable >= 0.0 && pln_stable < 0.2 {//water
+                self.terrain.push(TileType::Water);
+            } else if pln >= 0.2 && pln < 0.6 {//trees
+                self.terrain.push(TileType::Tree);
+            } else if pln >= 0.6 && pln < 0.8 {//brush
+                self.terrain.push(TileType::Brush);
+            } else if pln >= 0.8 {//grass
+                self.terrain.push(TileType::Grass);
+            } else {//MAP_ERROR
+                self.terrain.push(TileType::Invalid);
+            }
+
+        }
+    }
+
+    // Generate the map image
+    pub fn create_image(&mut self){
+        let mut rng: ThreadRng = rand::thread_rng();
+        self.image.clear();
+        // Set color based on noise value
+        
+        for tile in &self.terrain{
+            //let tile = self.terrain.get(i);
             // Create pixel color values 
             let r: f32;
             let g: f32;
             let b: f32;
 
-            // Set color based on noise value
-            if pln_stable > 0.97 && pln_stable < 1.03 {//water
-                r = 42.0;
-                g = 147.0 + rng.gen::<f32>() * 20.0;
-                b = 173.0;
-            } else if pln > 0.8 && pln < 1.2 {//trees
-                r = 83.0;
-                g = 138.0 + rng.gen::<f32>() * 20.0;
-                b = 28.0;
-            } else if pln > 0.6 && pln < 1.4 {//brush
-                r = 132.0;
-                g = 181.0 + rng.gen::<f32>() * 20.0;
-                b = 83.0;
-            } else if pln > 0.0 && pln < 2.0 {//grass
-                r = 167.0 + rng.gen::<f32>() * 20.0;
-                g = 199.0;
-                b = 127.0;
-            } else {//MAP_ERROR
-                r = 255.0;
-                g = 100.0;
-                b = 100.0;
+            match tile {
+                TileType::Water => {
+                    r = 42.0;
+                    g = 147.0 + rng.gen::<f32>() * 20.0;
+                    b = 173.0;
+                } 
+                TileType::Tree => {//trees
+                    r = 83.0;
+                    g = 138.0 + rng.gen::<f32>() * 20.0;
+                    b = 28.0;
+                } 
+                TileType::Brush => {//brush
+                    r = 132.0;
+                    g = 181.0 + rng.gen::<f32>() * 20.0;
+                    b = 83.0;
+                }
+                TileType::Grass => {//grass
+                    r = 167.0 + rng.gen::<f32>() * 20.0;
+                    g = 199.0;
+                    b = 127.0;
+                } 
+                _ => {//MAP_ERROR
+                    r = 255.0;
+                    g = 100.0;
+                    b = 100.0;
+                }
             }
 
             // Push to list as flattened array
@@ -65,7 +103,6 @@ impl Map {
             self.image.push((0.003921568627451*(g*g)) as u8);
             self.image.push((0.003921568627451*(b*b)) as u8);
             self.image.push(255);//a
-
         }
 
     }
