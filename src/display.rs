@@ -12,10 +12,13 @@ use sdl2::render::Canvas;
 use sdl2::video::Window;
 
 pub(crate) struct Camera {
-    pub x_offset: i32,   // Camera pos and zoom
-    pub y_offset: i32,
+    pub x_offset: f32,   // Camera pos and zoom
+    pub y_offset: f32,
     pub zoom: f32, 
-    pub movement_speed: i32,  
+    pub movement_speed: f32,  
+    pub zoom_speed: f32,  
+    pub window_width: f32,
+    pub window_height: f32,
 }
 
 //pub(crate) struct Keyboard {
@@ -46,15 +49,22 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
 
     //map data
     let mut map = world::Map{
-        size: 750,
+        size: 500,
         terrain: Vec::<TileType>::new(),
         image: Vec::<u8>::new(),
         plain_thresh: 0.0,
         mountain_thresh: 0.0,
     };
 
-    let mut camera = Camera { x_offset: 0, y_offset: 0, zoom: 0.0, movement_speed: 2 };
+    let mut camera = Camera { 
+        x_offset: 0.0, 
+        y_offset: 0.0, 
+        zoom: 4.0, 
         zoom_speed: 0.02,
+        movement_speed: 5.0,
+        window_width: 1600.0,
+        window_height: 1200.0,
+    };
 
     map.generate_layers();
     map.create_image();
@@ -81,7 +91,6 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
     let mut key_states: [bool; 238] = [false; 238];
     'running: loop {
         
-        i = (i + 1) % 255;
         canvas.clear();
 
         //get user inputs
@@ -94,8 +103,8 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
         
         map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
 
-        canvas.set_draw_color(Color::RGB(50, 50, 50));
-        canvas.copy(&map_texture, None, Rect::new(camera.x_offset, camera.y_offset, 2000, 2000)).unwrap();
+        canvas.copy(&map_texture, None, Rect::new(camera.x_offset as i32, camera.y_offset as i32, (camera.zoom*map.size as f32) as u32, (camera.zoom*map.size as f32) as u32)).unwrap();
+        let _ = canvas.fill_rect(Rect::new(800, 0, 10, 10));
 
         canvas.present();
         let elapsed =  previous_frame_start.elapsed();
@@ -114,7 +123,8 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
 
 
 fn inputs(event_pump: &mut EventPump, map: &mut world::Map, camera: &mut Camera, key_states:  &mut [bool; 238]) -> bool{
-    
+    //println!("{}", ((((camera.window_width/2.0)/2.0)+(camera.x_offset/camera.zoom))/(map.size as f32)));
+    println!("{}", (((camera.x_offset-(camera.window_width/2.0))/camera.zoom)/(map.size as f32)));
     //updates the array of all the keys that are currently held down
     for event in event_pump.poll_iter() {
         match event {
