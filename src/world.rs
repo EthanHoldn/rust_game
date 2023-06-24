@@ -29,7 +29,7 @@ impl Map {
         
         // scale factor for perlin noise 
         // bigger number means the changes in terrain are more spread out
-        let scale:f64 = 30.0;
+        let scale:f64 = 100.0;
 
         // For each pixel
         for i in 0 .. (self.size * self.size){
@@ -39,7 +39,7 @@ impl Map {
             let y: u32 = i / self.size;
             let mut pln: f64 = perlin.get([x as f64 / scale, y as f64 / scale, 0.0]) + 1.0;
             let pln_stable: f64 = pln;
-            pln = pln + rng.gen::<f64>()*0.1;
+            //pln = pln + rng.gen::<f64>()*0.1;
 
             // Set color based on noise value
             if pln_stable >= 0.0 && pln_stable < 0.2 {//water

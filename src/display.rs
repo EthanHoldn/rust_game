@@ -113,7 +113,6 @@ fn run(canvas: &mut Canvas<Window>, event_pump: &mut EventPump){
 
 
 fn inputs(event_pump: &mut EventPump, map: &mut world::Map, camera: &mut Camera, key_states:  &mut [bool; 238]) -> bool{
-    
     //updates the array of all the keys that are currently held down
     for event in event_pump.poll_iter() {
         match event {
