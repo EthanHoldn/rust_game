@@ -29,7 +29,7 @@ impl Map {
         
         // scale factor for perlin noise 
         // bigger number means the changes in terrain are more spread out
-        let scale:f64 = 100.0;
+        let scale:f64 = 70.0;
 
         // For each pixel
         for i in 0 .. (self.size * self.size){
@@ -44,12 +44,14 @@ impl Map {
             // Set color based on noise value
             if pln_stable >= 0.0 && pln_stable < 0.2 {//water
                 self.terrain.push(TileType::Water);
-            } else if pln >= 0.2 && pln < 0.6 {//trees
-                self.terrain.push(TileType::Tree);
-            } else if pln >= 0.6 && pln < 0.8 {//brush
+            } else if pln >= 0.2 && pln < 0.25 {// marsh
                 self.terrain.push(TileType::Brush);
-            } else if pln >= 0.8 {//grass
+            } else if pln >= 0.25 && pln < 1.5 {// grass
                 self.terrain.push(TileType::Grass);
+            } else if pln >= 1.5 && pln < 1.55{ //tree
+                self.terrain.push(TileType::Tree);
+            } else if pln >= 1.55 {// mountains
+                self.terrain.push(TileType::Mountain);
             } else {//MAP_ERROR
                 self.terrain.push(TileType::Invalid);
             }
@@ -90,6 +92,12 @@ impl Map {
                     r = 167.0 + rng.gen::<f32>() * 20.0;
                     g = 199.0;
                     b = 127.0;
+                } 
+                TileType::Mountain => {//grass
+                    let a = rng.gen::<f32>() * 20.0;
+                    r = a + 145.0;
+                    g = a + 164.0;
+                    b = a + 164.0;
                 } 
                 _ => {//MAP_ERROR
                     r = 255.0;

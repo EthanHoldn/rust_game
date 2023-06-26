@@ -173,9 +173,13 @@ fn inputs(event_pump: &mut EventPump, map: &mut world::Map, camera: &mut Camera,
         camera.x_offset -= (relative_zoom_speed*map.size as f32) * (((camera.x_offset-(camera.window_width/2.0))/camera.zoom)/(map.size as f32));
         camera.y_offset -= (relative_zoom_speed*map.size as f32) * (((camera.y_offset-(camera.window_height/2.0))/camera.zoom)/(map.size as f32));
 
-
-
     }
+
+    // Quit
+    if key_states[202] || key_states[4] { // Esc or ctrl
+        return true;
+    }
+
     return false;
 }
 
