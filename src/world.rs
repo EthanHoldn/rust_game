@@ -6,16 +6,18 @@ use sdl2::{
     video::Window,
 };
 
+#[derive(Copy, Clone)]
 pub enum TileType {
     Invalid,
     Water,
     Grass,
     Brush,
     Tree,
-    Mountain,
+    Mountain
 }
 
-// Map struct
+// Map struct 
+#[derive(Clone)]
 pub(crate) struct Map {
     pub size: u32, // Size of pixel array
     pub terrain: Vec<TileType>,
