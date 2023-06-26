@@ -8,7 +8,9 @@ edition = "2021"
 [dependencies]
 rand = "0.8.5"
 noise = "0.8.2"
+
+
 [dependencies.sdl2]
 version = "0.35.2"
 default-features = false
-features = ["image"]
+features = ["image", "ttf"]
