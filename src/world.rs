@@ -6,6 +6,11 @@ use sdl2::{
     video::Window,
 };
 
+pub struct Point {
+    pub x : u32,
+    pub y : u32
+}
+
 #[derive(Copy, Clone)]
 pub enum TileType {
     Invalid,
@@ -28,6 +33,23 @@ pub(crate) struct Map {
 
 // Class methods for Map
 impl Map {
+    fn xy_to_i (&mut self, x : u32, y : u32) -> usize{
+        return ((y * self.size + x) * 4) as usize;
+    }
+
+    // Generate mountains
+    pub fn generate_mountains(&mut self){
+        // Generate a seed point for the fault line and calculate its index
+        let fault_seed : Point = Point { x: (random::<u32>() % self.size), y: (random::<u32>() % self.size) };
+        let index = self.xy_to_i(fault_seed.x, fault_seed.y);
+        
+        // Set black pixel for debugging and print
+        self.image[index] = 0;
+        self.image[index + 1] = 0;
+        self.image[index + 2] = 0;
+        print!("{:}, {:}\n", fault_seed.x, fault_seed.y);
+    }
+
     //TODO: implement map data layer generations
     pub fn generate_layers(&mut self) {
         // Create noise instance, pixel array, and set scale
@@ -56,7 +78,7 @@ impl Map {
                 self.terrain.push(TileType::Brush);
             } else if pln >= 0.25 && pln < 1.5 {// grass
                 self.terrain.push(TileType::Grass);
-            } else if pln >= 1.6 {// grass
+            } else if pln >= 1.5 {// grass
                 self.terrain.push(TileType::Mountain);
             } else {//MAP_ERROR
                 self.terrain.push(TileType::Invalid);
@@ -102,7 +124,7 @@ impl Map {
                     b = 127.0;
                 } 
                 TileType::Mountain => {
-                    let a = 160 + rng.gen::<f32>() * 20.0;
+                    let a = 160.0 + rng.gen::<f32>() * 20.0;
                     r = a;
                     g = a;
                     b = a;
@@ -120,5 +142,6 @@ impl Map {
             self.image.push((0.003921568627451 * (b * b)) as u8);
             self.image.push(255); //a
         }
+        self.generate_mountains();
     }
 }

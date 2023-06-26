@@ -222,6 +222,9 @@ fn inputs(
 
     }
 
+    // Quit on esc or ctrl
+    if key_states[4] || key_states[202] {return  true;}
+
     return false;
 }
 
