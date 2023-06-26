@@ -2,6 +2,7 @@ use rand::prelude::*;
 use noise::{NoiseFn, Perlin};
 use sdl2::{pixels::PixelFormatEnum, render::{Canvas, Texture}, video::Window};
 
+#[derive(Copy, Clone)]
 pub enum tile_type {
     invalid,
     water,
@@ -12,6 +13,7 @@ pub enum tile_type {
 }
 
 // Map struct 
+#[derive(Clone)]
 pub(crate) struct Map {
     pub size: u32,              // Size of pixel array
     pub terrain: Vec<tile_type>,
@@ -62,7 +64,9 @@ impl Map {
         let mut rng: ThreadRng = rand::thread_rng();
 
         // Set color based on noise value
-        for tile in self.terrain.into_iter() {
+        for i in 0..self.terrain.len(){
+            println!("{i}");
+            let tile = self.terrain.get(i);
 
             // Create pixel color values 
             let r: f32;
@@ -70,22 +74,22 @@ impl Map {
             let b: f32;
 
             match tile {
-                tile_type::water => {
+                Some(tile_type::water) => {
                     r = 42.0;
                     g = 147.0 + rng.gen::<f32>() * 20.0;
                     b = 173.0;
                 } 
-                tile_type::tree => {//trees
+                Some(tile_type::tree) => {//trees
                     r = 83.0;
                     g = 138.0 + rng.gen::<f32>() * 20.0;
                     b = 28.0;
                 } 
-                tile_type::brush => {//brush
+                Some(tile_type::brush) => {//brush
                     r = 132.0;
                     g = 181.0 + rng.gen::<f32>() * 20.0;
                     b = 83.0;
                 }
-                tile_type::grass => {//grass
+                Some(tile_type::grass) => {//grass
                     r = 167.0 + rng.gen::<f32>() * 20.0;
                     g = 199.0;
                     b = 127.0;
