@@ -1,6 +1,7 @@
 extern crate sdl2;
 use crate::world::{self, TileType};
 
+use std::{thread, time};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
@@ -57,6 +58,7 @@ fn run(wc: &mut WindowContext) {
         image: Vec::<u8>::new(),
         plain_thresh: 0.0,
         mountain_thresh: 0.0,
+        fire: Vec::<u8>::new(),
     };
 
     //camera data
@@ -93,6 +95,8 @@ fn run(wc: &mut WindowContext) {
     //all window related operations need to be done in here
 
     let mut key_states: [bool; 238] = [false; 238];
+
+
     'running: loop {
         wc.canvas.clear();
 
@@ -121,8 +125,19 @@ fn run(wc: &mut WindowContext) {
                 ),
             )
             .unwrap();
+
+        map.update();
+
+        //FPS calculations
         let elapsed = previous_frame_start.elapsed();
-        display_text(wc, &((elapsed.as_nanos() as f64 )/1_000_000.0).to_string());
+        let elapsed_sec = elapsed.as_secs_f64();
+        let remaining_sec = target_frame_time.as_secs_f64()-elapsed_sec;
+        let actual_framerate = 1.0/elapsed_sec;
+        //FPS display
+        display_text(wc, 10,10, &format!("{:.2}",elapsed_sec*1000.0));
+        display_text(wc, 10,110, &format!("{:.2}",remaining_sec*1000.0));
+        display_text(wc, 10,210, &format!("{:.2}",actual_framerate));
+
         let _ = wc.canvas.present();
         if elapsed < target_frame_time {
             std::thread::sleep(target_frame_time - elapsed);
@@ -137,7 +152,7 @@ fn run(wc: &mut WindowContext) {
     }
 }
 
-fn display_text(wc: &mut WindowContext, text: &str ){
+fn display_text(wc: &mut WindowContext,x:i32, y: i32, text: &str){
     let font: Font = wc.ttf_context.load_font("assets/fonts/FiraSans-Bold.ttf", 50 ).unwrap();
 
     let text_surface = font
@@ -155,7 +170,7 @@ fn display_text(wc: &mut WindowContext, text: &str ){
         let text_height = text_surface.height();
 
         // Draw the text
-        wc.canvas.copy(&text_texture, None, Rect::new(20, 20, text_width, text_height))
+        wc.canvas.copy(&text_texture, None, Rect::new(x, y, text_width, text_height))
             .unwrap();
 }
 
@@ -187,6 +202,9 @@ fn inputs(
             }
             _ => {}
         }
+    }
+    if key_states[43] { // ` 
+        thread::sleep(time::Duration::from_millis(1000));
     }
 
     //camera movement

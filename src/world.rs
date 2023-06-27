@@ -6,6 +6,9 @@ use sdl2::{
     video::Window,
 };
 
+use crate::fire;
+
+
 #[derive(Copy, Clone)]
 pub struct Point {
     pub x : i32,
@@ -27,6 +30,7 @@ pub enum TileType {
 pub(crate) struct Map {
     pub size: u32, // Size of pixel array
     pub terrain: Vec<TileType>,
+    pub fire: Vec<u8>,
     pub image: Vec<u8>,
     pub plain_thresh: f32,
     pub mountain_thresh: f32,
@@ -64,12 +68,12 @@ impl Point {
 // Class methods for Map
 impl Map {
     // Get index into image
-    fn xy_to_i_image (&mut self, x : i32, y : i32) -> usize {
+    pub fn xy_to_i_image (&mut self, x : i32, y : i32) -> usize {
         return ((y * self.size as i32+ x) * 4) as usize;
     }
 
     // Get index into terrain map
-    fn xy_to_i_terrain (&mut self, x : i32, y : i32) -> usize {
+    pub fn xy_to_i_terrain (&mut self, x : i32, y : i32) -> usize {
         return (y * self.size as i32 + x) as usize;
     }
 
@@ -125,6 +129,8 @@ impl Map {
 
     //TODO: implement map data layer generations
     pub fn generate_layers(&mut self) {
+        self.fire = vec![0; (self.size*self.size).try_into().unwrap()];
+
         // Create noise instance, pixel array, and set scale
         let perlin: Perlin = Perlin::new(1);
 
@@ -216,5 +222,9 @@ impl Map {
             self.image.push(255); //a
         }
         self.generate_mountains(15,10, 25, 15);
+    }
+
+    pub fn update(&mut self){
+        fire::simulation_update( self);
     }
 }

@@ -1,5 +1,6 @@
 pub mod display;
 pub mod world;
+pub mod fire;
 
 
 
