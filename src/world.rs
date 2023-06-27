@@ -6,9 +6,10 @@ use sdl2::{
     video::Window,
 };
 
+#[derive(Copy, Clone)]
 pub struct Point {
-    pub x : u32,
-    pub y : u32
+    pub x : i32,
+    pub y : i32
 }
 
 #[derive(Copy, Clone)]
@@ -31,23 +32,95 @@ pub(crate) struct Map {
     pub mountain_thresh: f32,
 }
 
+impl Point {
+    // Add a point to this point and return NEW point
+    fn add (&mut self, p : Point) -> Point {
+        return Point { x : self.x + p.x, y : self.y + p.y };
+    }
+    
+    // Add a point to this point IN PLACE (modify it)
+    fn add_i (&mut self, p : Point) {
+        self.x += p.x;
+        self.y += p.y;
+    }
+
+    // Multiply by scalar and return NEW point
+    fn scalar_mult (&mut self, a : i32) -> Point {
+        return  Point { x: self.x * a, y: self.y * a};
+    }
+
+    // Multiply by scalar IN PLACE
+    fn scalar_mult_i (&mut self, a : i32) {
+        self.x *= a;
+        self.y *= a;
+    }
+
+    // Print position
+    fn print(&mut self){
+        println!("Point: {:},{:}", self.x, self.y);
+    }
+}
+
 // Class methods for Map
 impl Map {
-    fn xy_to_i (&mut self, x : u32, y : u32) -> usize{
-        return ((y * self.size + x) * 4) as usize;
+    // Get index into image
+    fn xy_to_i_image (&mut self, x : i32, y : i32) -> usize {
+        return ((y * self.size as i32+ x) * 4) as usize;
+    }
+
+    // Get index into terrain map
+    fn xy_to_i_terrain (&mut self, x : i32, y : i32) -> usize {
+        return (y * self.size as i32 + x) as usize;
+    }
+
+    // Check if x
+    fn check_bounds (&mut self, x : i32, y : i32) -> bool {
+        return x >= 0 && x < self.size as i32 && y >= 0 && y < self.size as i32;
     }
 
     // Generate mountains
-    pub fn generate_mountains(&mut self){
-        // Generate a seed point for the fault line and calculate its index
-        let fault_seed : Point = Point { x: (random::<u32>() % self.size), y: (random::<u32>() % self.size) };
-        let index = self.xy_to_i(fault_seed.x, fault_seed.y);
-        
+    pub fn generate_mountains(&mut self, v_0_range : u32, v_0_min : u32, max_len : u32, max_accel : u32) {
+        // Generate a seed point for the fault line and generate initial velocity
+        let mut fault_seed : Point = Point { x: (random::<u32>() % self.size) as i32, y: (random::<u32>() % self.size) as i32 };
+        let mut fault_velocity : Point = Point { x: ((random::<u32>() % v_0_range) + v_0_min) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1), 
+                                                 y: ((random::<u32>() % v_0_range) + v_0_min) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1)};
+        let mut next_point : Point = fault_seed;
+
         // Set black pixel for debugging and print
+        let index = self.xy_to_i_image(fault_seed.x, fault_seed.y);
         self.image[index] = 0;
         self.image[index + 1] = 0;
         self.image[index + 2] = 0;
-        print!("{:}, {:}\n", fault_seed.x, fault_seed.y);
+        print!("Fault seed: {:},{:}\nv_0: ", fault_seed.x, fault_seed.y);
+        fault_velocity.print();
+
+        // NOTE: Could have it follow perlin noise field instead
+        // Create each line segment
+        for i in 0..(random::<u32>() % max_len) {
+            // Introduce randomized acceleration to fault path
+            let mut fault_acceleration : Point = Point { x: (random::<u32>() % max_accel) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1), 
+                                                         y: (random::<u32>() % max_accel) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1)};
+            fault_velocity = fault_velocity.add(fault_acceleration);
+            print!("Acc: ");
+            fault_acceleration.print();
+            print!("Vel: ");
+            fault_velocity.print();
+            
+            // Add the velocity vector to previous point to get new point
+            next_point = next_point.add(fault_velocity);
+            print!("Next: ");
+            next_point.print();
+            
+            if !self.check_bounds(next_point.x, next_point.y) {
+                break;
+            }
+
+            let index = self.xy_to_i_image(next_point.x, next_point.y);
+            self.image[index] = 0;
+            self.image[index + 1] = 0;
+            self.image[index + 2] = 0;
+            
+        }
     }
 
     //TODO: implement map data layer generations
@@ -142,6 +215,6 @@ impl Map {
             self.image.push((0.003921568627451 * (b * b)) as u8);
             self.image.push(255); //a
         }
-        self.generate_mountains();
+        self.generate_mountains(15,10, 25, 15);
     }
 }

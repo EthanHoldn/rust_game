@@ -128,6 +128,7 @@ fn run(wc: &mut WindowContext) {
             std::thread::sleep(target_frame_time - elapsed);
         }
         previous_frame_start = Instant::now();
+
         for (index, &state) in key_states.iter().enumerate() {
             if state {
                 println!("Key {:?} is pressed", index as i32);
@@ -224,6 +225,9 @@ fn inputs(
 
     // Quit on esc or ctrl
     if key_states[4] || key_states[202] {return  true;}
+
+    // Regen map
+    if key_states[2] {map.create_image()}
 
     return false;
 }
