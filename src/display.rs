@@ -1,4 +1,5 @@
 extern crate sdl2;
+use crate::fire;
 use crate::world::{self, TileType};
 
 use std::{thread, time};
@@ -65,7 +66,7 @@ fn run(wc: &mut WindowContext) {
     let mut camera = Camera {
         x_offset: 0.0,
         y_offset: 0.0,
-        zoom: 4.0,
+        zoom: 2.0,
         zoom_speed: 0.02,
         movement_speed: 5.0,
         window_width: 1600.0,
@@ -75,6 +76,9 @@ fn run(wc: &mut WindowContext) {
     //generate map data
     map.generate_layers();
     map.create_image();
+    
+    //start fire
+    fire::spawn(&mut map);
 
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();

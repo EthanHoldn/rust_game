@@ -1,4 +1,4 @@
-use noise::{NoiseFn, Perlin};
+use noise::{NoiseFn, Perlin, utils::Color};
 use rand::prelude::*;
 use sdl2::{
     pixels::PixelFormatEnum,
@@ -68,12 +68,12 @@ impl Point {
 // Class methods for Map
 impl Map {
     // Get index into image
-    pub fn xy_to_i_image (&mut self, x : i32, y : i32) -> usize {
-        return ((y * self.size as i32+ x) * 4) as usize;
-    }
+    //pub fn xy_to_i_image (&mut self, x : i32, y : i32) -> usize {
+    //    return ((y * self.size as i32+ x) * 4) as usize;
+    //}
 
     // Get index into terrain map
-    pub fn xy_to_i_terrain (&mut self, x : i32, y : i32) -> usize {
+    pub fn index (&mut self, x : i32, y : i32) -> usize {
         return (y * self.size as i32 + x) as usize;
     }
 
@@ -91,10 +91,7 @@ impl Map {
         let mut next_point : Point = fault_seed;
 
         // Set black pixel for debugging and print
-        let index = self.xy_to_i_image(fault_seed.x, fault_seed.y);
-        self.image[index] = 0;
-        self.image[index + 1] = 0;
-        self.image[index + 2] = 0;
+        self.update_pixel(fault_seed.x as u32, fault_seed.y as u32, 0, 0, 0, 255);
         print!("Fault seed: {:},{:}\nv_0: ", fault_seed.x, fault_seed.y);
         fault_velocity.print();
 
@@ -118,15 +115,20 @@ impl Map {
             if !self.check_bounds(next_point.x, next_point.y) {
                 break;
             }
-
-            let index = self.xy_to_i_image(next_point.x, next_point.y);
-            self.image[index] = 0;
-            self.image[index + 1] = 0;
-            self.image[index + 2] = 0;
+            
+            self.update_pixel(next_point.x as u32, next_point.y as u32, 0, 0, 0, 255);
             
         }
     }
+    pub fn update_pixel(&mut self, x:u32, y:u32, r:u8, g:u8, b:u8, a:u8){
+        let i = (x*self.size)+y;
+        self.image[(i*4) as usize] = r;
+        self.image[(i*4) as usize + 1] = g;
+        self.image[(i*4) as usize + 2] = b;
+        self.image[(i*4) as usize + 3] = a;
 
+
+    }
     //TODO: implement map data layer generations
     pub fn generate_layers(&mut self) {
         self.fire = vec![0; (self.size*self.size).try_into().unwrap()];
