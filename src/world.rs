@@ -15,6 +15,7 @@ pub struct Point {
     pub y : i32
 }
 
+#[derive(PartialEq)]
 #[derive(Copy, Clone)]
 pub enum TileType {
     Invalid,
@@ -152,14 +153,14 @@ impl Map {
             //pln = pln + rng.gen::<f64>()*0.1;
 
             // Set color based on noise value
-            if pln_stable >= 0.0 && pln_stable < 0.2 {
+            if pln_stable >= 0.0 && pln_stable < 0.3 {
                 //water
                 self.terrain.push(TileType::Water);
-            } else if pln >= 0.2 && pln < 0.25 {// marsh
+            } else if pln >= 0.3 && pln < 0.4 {// marsh
                 self.terrain.push(TileType::Brush);
-            } else if pln >= 0.25 && pln < 1.5 {// grass
+            } else if pln >= 0.4 && pln < 1.3 {// grass
                 self.terrain.push(TileType::Grass);
-            } else if pln >= 1.5 {// grass
+            } else if pln >= 1.3 {// grass
                 self.terrain.push(TileType::Mountain);
             } else {//MAP_ERROR
                 self.terrain.push(TileType::Invalid);
