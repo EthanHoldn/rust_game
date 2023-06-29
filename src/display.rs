@@ -60,6 +60,7 @@ fn run(wc: &mut WindowContext) {
         plain_thresh: 0.0,
         mountain_thresh: 0.0,
         fire: Vec::<u8>::new(),
+        active: Vec::<bool>::new(),
     };
 
     //camera data
@@ -252,6 +253,10 @@ fn inputs(
     if key_states[2] {map.create_image()}
 
     return false;
+}
+
+fn debug(wc: &mut WindowContext){
+
 }
 
 //don't open this

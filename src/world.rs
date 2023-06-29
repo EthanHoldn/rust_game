@@ -32,6 +32,7 @@ pub(crate) struct Map {
     pub size: u32, // Size of pixel array
     pub terrain: Vec<TileType>,
     pub fire: Vec<u8>,
+    pub active: Vec<bool>,
     pub image: Vec<u8>,
     pub plain_thresh: f32,
     pub mountain_thresh: f32,
@@ -121,6 +122,8 @@ impl Map {
             
         }
     }
+
+
     pub fn update_pixel(&mut self, x:u32, y:u32, r:u8, g:u8, b:u8, a:u8){
         let i = (x*self.size)+y;
         self.image[(i*4) as usize] = r;
@@ -133,7 +136,7 @@ impl Map {
     //TODO: implement map data layer generations
     pub fn generate_layers(&mut self) {
         self.fire = vec![0; (self.size*self.size).try_into().unwrap()];
-
+        self.active = vec![false; (self.size*self.size).try_into().unwrap()];
         // Create noise instance, pixel array, and set scale
         let perlin: Perlin = Perlin::new(1);
 
