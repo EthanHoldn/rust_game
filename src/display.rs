@@ -1,12 +1,12 @@
 extern crate sdl2;
 use crate::fire;
-use crate::world::{self, TileType};
+use crate::world::{self, TileType, Map};
 
 use std::{thread, time};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::Rect;
+use sdl2::rect::{Rect, self};
 use sdl2::render::{Canvas, TextureCreator, Texture};
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::Window;
@@ -134,15 +134,10 @@ fn run(wc: &mut WindowContext) {
         map.update();
 
         //FPS calculations
-        let elapsed = previous_frame_start.elapsed();
-        let elapsed_sec = elapsed.as_secs_f64();
-        let remaining_sec = target_frame_time.as_secs_f64()-elapsed_sec;
-        let actual_framerate = 1.0/elapsed_sec;
-        //FPS display
-        display_text(wc, 10,10, &format!("{:.2}",elapsed_sec*1000.0));
-        display_text(wc, 10,110, &format!("{:.2}",remaining_sec*1000.0));
-        display_text(wc, 10,210, &format!("{:.2}",actual_framerate));
-
+        let elapsed: Duration = previous_frame_start.elapsed();
+        
+        debug(wc, elapsed, target_frame_time, &camera, &mut map);
+        
         let _ = wc.canvas.present();
         if elapsed < target_frame_time {
             std::thread::sleep(target_frame_time - elapsed);
@@ -255,7 +250,32 @@ fn inputs(
     return false;
 }
 
-fn debug(wc: &mut WindowContext){
+fn debug(wc: &mut WindowContext, elapsed: Duration, target_frame_time: Duration, camera: &Camera, map: &mut Map){
+
+    //calculate framerate
+    let elapsed_sec = elapsed.as_secs_f64();
+    let remaining_sec = target_frame_time.as_secs_f64()-elapsed_sec;
+    let actual_framerate = 1.0/elapsed_sec;
+    //FPS display
+    display_text(wc, 10,10, &format!("{:.2}",elapsed_sec*1000.0));
+    display_text(wc, 10,110, &format!("{:.2}",remaining_sec*1000.0));
+    display_text(wc, 10,210, &format!("{:.2}",actual_framerate));
+
+    //show map data
+    let middle_x = (camera.window_width/2.0) as i32;
+    let middle_y = (camera.window_height/2.0) as i32;
+
+    let _ = wc.canvas.draw_rect(Rect::new(middle_x, middle_y, 10, 10));
+
+    let y = ((((camera.x_offset - (camera.window_width / 2.0)) / camera.zoom))*-1.0) as u32;
+    let x = ((((camera.y_offset - (camera.window_height / 2.0)) / camera.zoom))*-1.0) as u32;
+
+    let active:bool = map.active[fire::index(map.size, x, y)];
+    let fire: u8 = map.fire[fire::index(map.size, x, y)];
+    map.update_pixel(x, y, 0, 255, 0, 255);
+    display_text(wc, middle_x, middle_y, active.to_string().as_str());
+    display_text(wc, middle_x, middle_y+20, fire.to_string().as_str());
+
 
 }
 
