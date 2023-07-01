@@ -1,6 +1,6 @@
 
 pub(crate) struct Button<'a> {
-    pub name: &'a str, // Size of pixel array
+    pub name: &'a str,
     pub x: u32,
     pub y: u32,
 }
