@@ -28,7 +28,7 @@ pub(crate) fn simulation_update(map : &mut Map){
                     let ox = rand::thread_rng().gen_range(0..3);
                     let oy = rand::thread_rng().gen_range(0..3);
                     let oi = index(size,x+ox-1,y+oy-1);
-                    if fire_previous[oi] == 0  && map.terrain[oi] == TileType::Grass{
+                    if fire_previous[oi] == 0  && map.terrain[oi] != TileType::Mountain && map.terrain[oi] != TileType::Water{
                         map.fire[oi] += 1;
                         map.update_pixel(x+ox-1, y+oy-1, 255, 0, 0, 255);
                         map.active[oi] = true;

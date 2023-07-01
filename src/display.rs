@@ -21,11 +21,20 @@ pub(crate) struct Camera {
     pub zoom_speed: f32,
     pub window_width: f32,
     pub window_height: f32,
+    pub target_fps: u32,
+    pub target_frame_time: Duration,
 }
 pub(crate) struct WindowContext {
     pub canvas: Canvas<Window>,
     pub event_pump: EventPump,
     pub ttf_context: Sdl2TtfContext,
+    pub camera: Camera,
+    pub im: IM,
+}
+pub(crate) struct IM {
+    mouse_x: u32,
+    mouse_y: u32,
+    key_states: [bool; 238],
 }
 
 pub(crate) fn init() {
@@ -42,6 +51,21 @@ pub(crate) fn init() {
         canvas: window.into_canvas().build().unwrap(),
         event_pump: sdl_context.event_pump().unwrap(),
         ttf_context: sdl2::ttf::init().unwrap(),
+        camera: Camera {
+            x_offset: 0.0,
+            y_offset: 0.0,
+            zoom: 2.0,
+            zoom_speed: 0.02,
+            movement_speed: 5.0,
+            window_width: 1600.0,
+            window_height: 1200.0,
+            target_fps: 60,
+            target_frame_time:  Duration::from_secs(1) / 60,
+        },
+        im: IM { 
+            mouse_x: 0,
+            mouse_y: 0, 
+            key_states: [false; 238] }
     };
 
 
@@ -49,8 +73,6 @@ pub(crate) fn init() {
 }
 
 fn run(wc: &mut WindowContext) {
-    let target_fps = 60;
-    let target_frame_time = Duration::from_secs(1) / target_fps;
 
     //map data
     let mut map = world::Map {
@@ -61,17 +83,6 @@ fn run(wc: &mut WindowContext) {
         mountain_thresh: 0.0,
         fire: Vec::<u8>::new(),
         active: Vec::<bool>::new(),
-    };
-
-    //camera data
-    let mut camera = Camera {
-        x_offset: 0.0,
-        y_offset: 0.0,
-        zoom: 2.0,
-        zoom_speed: 0.02,
-        movement_speed: 5.0,
-        window_width: 1600.0,
-        window_height: 1200.0,
     };
 
     //generate map data
@@ -99,14 +110,11 @@ fn run(wc: &mut WindowContext) {
     //main  window rendering loop
     //all window related operations need to be done in here
 
-    let mut key_states: [bool; 238] = [false; 238];
-
-
     'running: loop {
         wc.canvas.clear();
 
         //get user inputs
-        if inputs(wc, &mut map, &mut camera, &mut key_states) {
+        if inputs(wc, &mut map) {
             break 'running;
         }
 
@@ -123,10 +131,10 @@ fn run(wc: &mut WindowContext) {
                 &map_texture,
                 None,
                 Rect::new(
-                    camera.x_offset as i32,
-                    camera.y_offset as i32,
-                    (camera.zoom * map.size as f32) as u32,
-                    (camera.zoom * map.size as f32) as u32,
+                    wc.camera.x_offset as i32,
+                    wc.camera.y_offset as i32,
+                    (wc.camera.zoom * map.size as f32) as u32,
+                    (wc.camera.zoom * map.size as f32) as u32,
                 ),
             )
             .unwrap();
@@ -136,19 +144,13 @@ fn run(wc: &mut WindowContext) {
         //FPS calculations
         let elapsed: Duration = previous_frame_start.elapsed();
         
-        debug(wc, elapsed, target_frame_time, &camera, &mut map);
+        debug(wc, elapsed, &mut map);
         
         let _ = wc.canvas.present();
-        if elapsed < target_frame_time {
-            std::thread::sleep(target_frame_time - elapsed);
+        if elapsed < wc.camera.target_frame_time {
+            std::thread::sleep(wc.camera.target_frame_time - elapsed);
         }
         previous_frame_start = Instant::now();
-
-        for (index, &state) in key_states.iter().enumerate() {
-            if state {
-                println!("Key {:?} is pressed", index as i32);
-            }
-        }
     }
 }
 
@@ -177,8 +179,6 @@ fn display_text(wc: &mut WindowContext,x:i32, y: i32, text: &str){
 fn inputs(
     wc: &mut WindowContext,
     map: &mut world::Map,
-    camera: &mut Camera,
-    key_states: &mut [bool; 238],
 ) -> bool {
     //updates the array of all the keys that are currently held down
     for event in wc.event_pump.poll_iter() {
@@ -189,7 +189,7 @@ fn inputs(
             } => {
                 // Key is pressed
                 if let Some(index) = keycode_to_index(key) {
-                    key_states[index] = true;
+                    wc.im.key_states[index] = true;
                 }
             }
             Event::KeyUp {
@@ -197,64 +197,64 @@ fn inputs(
             } => {
                 // Key is released
                 if let Some(index) = keycode_to_index(key) {
-                    key_states[index] = false;
+                    wc.im.key_states[index] = false;
                 }
             }
             _ => {}
         }
     }
-    if key_states[43] { // ` 
+    if wc.im.key_states[43] { // ` 
         thread::sleep(time::Duration::from_millis(1000));
     }
 
     //camera movement
-    if key_states[66] { // W  up
-        camera.y_offset += camera.movement_speed
+    if wc.im.key_states[66] { // W  up
+        wc.camera.y_offset += wc.camera.movement_speed
     }
-    if key_states[44] { // A  up
-        camera.x_offset += camera.movement_speed
+    if wc.im.key_states[44] { // A  up
+        wc.camera.x_offset += wc.camera.movement_speed
     }
-    if key_states[62] { // S  up
-        camera.y_offset -= camera.movement_speed
+    if wc.im.key_states[62] { // S  up
+        wc.camera.y_offset -= wc.camera.movement_speed
     }
-    if key_states[47] { // D  up
-        camera.x_offset -= camera.movement_speed
+    if wc.im.key_states[47] { // D  up
+        wc.camera.x_offset -= wc.camera.movement_speed
     }
     //camera zoom
-    if key_states[48] {
+    if wc.im.key_states[48] {
         // E  zoom in
 
-        let relative_zoom_speed = camera.zoom_speed * camera.zoom;
-        camera.zoom += relative_zoom_speed;
-        camera.x_offset += (relative_zoom_speed * map.size as f32) * (((camera.x_offset - (camera.window_width / 2.0)) / camera.zoom) / (map.size as f32));
-        camera.y_offset += (relative_zoom_speed * map.size as f32) * (((camera.y_offset - (camera.window_height / 2.0)) / camera.zoom) / (map.size as f32));
+        let relative_zoom_speed = wc.camera.zoom_speed * wc.camera.zoom;
+        wc.camera.zoom += relative_zoom_speed;
+        wc.camera.x_offset += (relative_zoom_speed * map.size as f32) * (((wc.camera.x_offset - (wc.camera.window_width / 2.0)) / wc.camera.zoom) / (map.size as f32));
+        wc.camera.y_offset += (relative_zoom_speed * map.size as f32) * (((wc.camera.y_offset - (wc.camera.window_height / 2.0)) / wc.camera.zoom) / (map.size as f32));
     }
-    if key_states[60] {
+    if wc.im.key_states[60] {
         // Q  zoom out
 
-        let relative_zoom_speed = camera.zoom_speed * camera.zoom;
-        camera.zoom -= relative_zoom_speed;
-        camera.x_offset -= (relative_zoom_speed*map.size as f32) * (((camera.x_offset-(camera.window_width/2.0))/camera.zoom)/(map.size as f32));
-        camera.y_offset -= (relative_zoom_speed*map.size as f32) * (((camera.y_offset-(camera.window_height/2.0))/camera.zoom)/(map.size as f32));
+        let relative_zoom_speed = wc.camera.zoom_speed * wc.camera.zoom;
+        wc.camera.zoom -= relative_zoom_speed;
+        wc.camera.x_offset -= (relative_zoom_speed*map.size as f32) * (((wc.camera.x_offset-(wc.camera.window_width/2.0))/wc.camera.zoom)/(map.size as f32));
+        wc.camera.y_offset -= (relative_zoom_speed*map.size as f32) * (((wc.camera.y_offset-(wc.camera.window_height/2.0))/wc.camera.zoom)/(map.size as f32));
 
 
 
     }
 
     // Quit on esc or ctrl
-    if key_states[4] || key_states[202] {return  true;}
+    if wc.im.key_states[4] || wc.im.key_states[202] {return  true;}
 
     // Regen map
-    if key_states[2] {map.create_image()}
+    if wc.im.key_states[2] {map.create_image()}
 
     return false;
 }
 
-fn debug(wc: &mut WindowContext, elapsed: Duration, target_frame_time: Duration, camera: &Camera, map: &mut Map){
+fn debug(wc: &mut WindowContext, elapsed: Duration, map: &mut Map){
 
     //calculate framerate
     let elapsed_sec = elapsed.as_secs_f64();
-    let remaining_sec = target_frame_time.as_secs_f64()-elapsed_sec;
+    let remaining_sec = wc.camera.target_frame_time.as_secs_f64()-elapsed_sec;
     let actual_framerate = 1.0/elapsed_sec;
     //FPS display
     display_text(wc, 10,10, &format!("{:.2}",elapsed_sec*1000.0));
@@ -262,13 +262,13 @@ fn debug(wc: &mut WindowContext, elapsed: Duration, target_frame_time: Duration,
     display_text(wc, 10,210, &format!("{:.2}",actual_framerate));
 
     //show map data
-    let middle_x = (camera.window_width/2.0) as i32;
-    let middle_y = (camera.window_height/2.0) as i32;
+    let middle_x = (wc.camera.window_width/2.0) as i32;
+    let middle_y = (wc.camera.window_height/2.0) as i32;
 
     let _ = wc.canvas.draw_rect(Rect::new(middle_x, middle_y, 10, 10));
 
-    let y = ((((camera.x_offset - (camera.window_width / 2.0)) / camera.zoom))*-1.0) as u32;
-    let x = ((((camera.y_offset - (camera.window_height / 2.0)) / camera.zoom))*-1.0) as u32;
+    let y = ((((wc.camera.x_offset - (wc.camera.window_width / 2.0)) / wc.camera.zoom))*-1.0) as u32;
+    let x = ((((wc.camera.y_offset - (wc.camera.window_height / 2.0)) / wc.camera.zoom))*-1.0) as u32;
 
     let active:bool = map.active[fire::index(map.size, x, y)];
     let fire: u8 = map.fire[fire::index(map.size, x, y)];

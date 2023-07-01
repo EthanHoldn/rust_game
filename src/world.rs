@@ -70,9 +70,6 @@ impl Point {
 // Class methods for Map
 impl Map {
     // Get index into image
-    //pub fn xy_to_i_image (&mut self, x : i32, y : i32) -> usize {
-    //    return ((y * self.size as i32+ x) * 4) as usize;
-    //}
 
     // Get index into terrain map
     pub fn index (&mut self, x : i32, y : i32) -> usize {
