@@ -1,10 +1,12 @@
 extern crate sdl2;
-use crate::fire;
+use crate::{fire, ui};
+use crate::ui::Button;
 use crate::world::{self, TileType, Map};
 
 use std::{thread, time};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
+use sdl2::mouse::MouseButton;
 use sdl2::pixels::{Color, PixelFormatEnum};
 use sdl2::rect::{Rect, self};
 use sdl2::render::{Canvas, TextureCreator, Texture};
@@ -12,6 +14,8 @@ use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::Window;
 use sdl2::EventPump;
 use std::time::{Duration, Instant};
+
+const DEBUG: bool = false;
 
 pub(crate) struct Camera {
     pub x_offset: f32, // Camera pos and zoom
@@ -30,6 +34,7 @@ pub(crate) struct WindowContext {
     pub ttf_context: Sdl2TtfContext,
     pub camera: Camera,
     pub im: IM,
+    pub buttons: Vec<Button>,
 }
 pub(crate) struct IM {
     mouse_x: u32,
@@ -65,7 +70,8 @@ pub(crate) fn init() {
         im: IM { 
             mouse_x: 0,
             mouse_y: 0, 
-            key_states: [false; 238] }
+            key_states: [false; 238] },
+        buttons: Vec::<Button>::new(),
     };
 
 
@@ -84,6 +90,9 @@ fn run(wc: &mut WindowContext) {
         fire: Vec::<u8>::new(),
         active: Vec::<bool>::new(),
     };
+
+
+    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 1000, y: 800, width: 200, height: 80, color: Color::RGB(100, 100, 100) });
 
     //generate map data
     map.generate_layers();
@@ -118,35 +127,24 @@ fn run(wc: &mut WindowContext) {
             break 'running;
         }
 
-        texture_creator
-            .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
-            .unwrap();
+        //display map
+        texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
+        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
+        wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
 
-        map_texture
-            .update(None, &map.image, map.size as usize * 4)
-            .unwrap();
-
-        wc.canvas
-            .copy(
-                &map_texture,
-                None,
-                Rect::new(
-                    wc.camera.x_offset as i32,
-                    wc.camera.y_offset as i32,
-                    (wc.camera.zoom * map.size as f32) as u32,
-                    (wc.camera.zoom * map.size as f32) as u32,
-                ),
-            )
-            .unwrap();
-
+        //do a game update on the map
         map.update();
+        
+        Button::render(wc);
 
         //FPS calculations
         let elapsed: Duration = previous_frame_start.elapsed();
         
-        debug(wc, elapsed, &mut map);
+        //show debug info 
+        if DEBUG {debug(wc, elapsed, &mut map);}
         
         let _ = wc.canvas.present();
+
         if elapsed < wc.camera.target_frame_time {
             std::thread::sleep(wc.camera.target_frame_time - elapsed);
         }
@@ -154,7 +152,7 @@ fn run(wc: &mut WindowContext) {
     }
 }
 
-fn display_text(wc: &mut WindowContext,x:i32, y: i32, text: &str){
+fn display_text(wc: &mut WindowContext, x:i32, y: i32, text: &str){
     let font: Font = wc.ttf_context.load_font("assets/fonts/FiraSans-Bold.ttf", 50 ).unwrap();
 
     let text_surface = font
@@ -176,10 +174,7 @@ fn display_text(wc: &mut WindowContext,x:i32, y: i32, text: &str){
             .unwrap();
 }
 
-fn inputs(
-    wc: &mut WindowContext,
-    map: &mut world::Map,
-) -> bool {
+fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
     //updates the array of all the keys that are currently held down
     for event in wc.event_pump.poll_iter() {
         match event {
@@ -198,6 +193,11 @@ fn inputs(
                 // Key is released
                 if let Some(index) = keycode_to_index(key) {
                     wc.im.key_states[index] = false;
+                }
+            }
+            Event::MouseButtonUp { timestamp, window_id, which, mouse_btn, clicks, x, y } => {
+                if MouseButton::Left == mouse_btn {
+                    Button::mouse_click(x,y, wc);
                 }
             }
             _ => {}
