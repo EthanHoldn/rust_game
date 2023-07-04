@@ -67,13 +67,21 @@ impl Point {
     }
 }
 
+// Bounds (x,y) pair to be 
+fn bound (m : Map, x : i32, y : i32){
+
+}
+
 // Class methods for Map
 impl Map {
     // Get index into image
 
     // Get index into terrain map
-    pub fn index (&mut self, x : i32, y : i32) -> usize {
-        return (y * self.size as i32 + x) as usize;
+    pub fn index (&mut self, x : i32, y : i32) -> Option<usize> {
+        // Gaurd statement to check bounds
+        if x < 0 || y < 0 || x >= self.size as i32 || y >= self.size as i32 { return None;}
+
+        return Some((y * self.size as i32 + x) as usize);
     }
 
     // Check if x
@@ -122,6 +130,8 @@ impl Map {
 
 
     pub fn update_pixel(&mut self, x:u32, y:u32, r:u8, g:u8, b:u8, a:u8){
+        if !self.check_bounds(x as i32, y as i32) { return; }
+
         let i = (x*self.size)+y;
         self.image[(i*4) as usize] = r;
         self.image[(i*4) as usize + 1] = g;
