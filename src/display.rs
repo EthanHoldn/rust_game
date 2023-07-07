@@ -1,23 +1,23 @@
 extern crate sdl2;
-use crate::{fire, ui};
-use crate::ui::Button;
+use crate::{fire};
+use crate::ui::{Button, render, mouse_click};
 use crate::world::{self, TileType, Map};
 
 use std::{thread, time};
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::mouse::MouseButton;
+use sdl2::mouse::{MouseButton};
 use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::{Rect, self};
+use sdl2::rect::{Rect};
 use sdl2::render::{Canvas, TextureCreator, Texture};
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::Window;
 use sdl2::EventPump;
 use std::time::{Duration, Instant};
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
-pub(crate) struct Camera {
+pub struct Camera {
     pub x_offset: f32, // Camera pos and zoom
     pub y_offset: f32,
     pub zoom: f32,
@@ -28,7 +28,7 @@ pub(crate) struct Camera {
     pub target_fps: u32,
     pub target_frame_time: Duration,
 }
-pub(crate) struct WindowContext {
+pub struct WindowContext {
     pub canvas: Canvas<Window>,
     pub event_pump: EventPump,
     pub ttf_context: Sdl2TtfContext,
@@ -36,10 +36,13 @@ pub(crate) struct WindowContext {
     pub im: IM,
     pub buttons: Vec<Button>,
 }
-pub(crate) struct IM {
-    mouse_x: u32,
-    mouse_y: u32,
-    key_states: [bool; 238],
+pub struct IM {
+    pub mouse_x: i32,
+    pub mouse_y: i32,
+    pub left_click: bool,
+
+    pub key_states: [bool; 238],
+    pub clicks: Vec<(u32,u32)>,
 }
 
 pub(crate) fn init() {
@@ -70,8 +73,11 @@ pub(crate) fn init() {
         im: IM { 
             mouse_x: 0,
             mouse_y: 0, 
-            key_states: [false; 238] },
+            left_click: false,
+            key_states: [false; 238],
+            clicks: Vec::<(u32,u32)>::new(), },
         buttons: Vec::<Button>::new(),
+        
     };
 
 
@@ -139,7 +145,7 @@ fn run(wc: &mut WindowContext) {
         //do a game update on the map
         map.update();
         
-        Button::render(wc);
+        render(wc);
 
         //FPS calculations
         let elapsed: Duration = previous_frame_start.elapsed();
@@ -199,14 +205,17 @@ fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
                     wc.im.key_states[index] = false;
                 }
             }
-            Event::MouseButtonUp { timestamp, window_id, which, mouse_btn, clicks, x, y } => {
+            Event::MouseButtonUp {mouse_btn, x, y, .. } => {
+                
                 if MouseButton::Left == mouse_btn {
-                    Button::mouse_click(x,y, wc);
+                    wc.im.mouse_x = x *2;
+                    wc.im.mouse_y = y *2
                 }
             }
             _ => {}
         }
     }
+    
     if wc.im.key_states[43] { // ` 
         thread::sleep(time::Duration::from_millis(1000));
     }
@@ -225,16 +234,15 @@ fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
         wc.camera.x_offset -= wc.camera.movement_speed
     }
     //camera zoom
-    if wc.im.key_states[48] {
-        // E  zoom in
-
+    
+    if wc.im.key_states[48] { // E  zoom in
         let relative_zoom_speed = wc.camera.zoom_speed * wc.camera.zoom;
         wc.camera.zoom += relative_zoom_speed;
         wc.camera.x_offset += (relative_zoom_speed * map.size as f32) * (((wc.camera.x_offset - (wc.camera.window_width / 2.0)) / wc.camera.zoom) / (map.size as f32));
         wc.camera.y_offset += (relative_zoom_speed * map.size as f32) * (((wc.camera.y_offset - (wc.camera.window_height / 2.0)) / wc.camera.zoom) / (map.size as f32));
-    }
-    if wc.im.key_states[60] {
-        // Q  zoom out
+    } 
+    if wc.im.key_states[60] { // Q  zoom out
+        
 
         let relative_zoom_speed = wc.camera.zoom_speed * wc.camera.zoom;
         wc.camera.zoom -= relative_zoom_speed;
@@ -248,8 +256,7 @@ fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
     // Quit on esc or ctrl
     if wc.im.key_states[4] || wc.im.key_states[202] {return  true;}
 
-    // Regen map
-    if wc.im.key_states[2] {map.create_image()}
+    mouse_click(wc.im.mouse_x, wc.im.mouse_y, wc);
 
     return false;
 }
@@ -530,6 +537,5 @@ fn keycode_to_index(keycode: Keycode) -> Option<usize> {
         Keycode::KbdIllumUp => Some(233),
         Keycode::Eject => Some(234),
         Keycode::Sleep => Some(235),
-        _ => None,
     }
 }

@@ -74,7 +74,6 @@ fn bound (m : Map, x : i32, y : i32){
 
 // Class methods for Map
 impl Map {
-    // Get index into image
 
     // Get index into terrain map
     pub fn index (&mut self, x : i32, y : i32) -> Option<usize> {

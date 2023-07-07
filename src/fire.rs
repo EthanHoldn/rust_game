@@ -8,7 +8,7 @@ pub(crate) fn index (size:u32, x : u32, y : u32) -> Option<usize> {
     // Gaurd statement to check bounds
     if x < 0 || y < 0 || x >= size || y >= size { return None;}
 
-    return Some((y * size + x) as usize);
+    return Some((x * size + y) as usize);
 }
 
 pub(crate) fn simulation_update(map : &mut Map){
@@ -41,7 +41,6 @@ pub(crate) fn simulation_update(map : &mut Map){
                 }
             }
         }
-        println!("{}", active_count);
 
     //}
     
