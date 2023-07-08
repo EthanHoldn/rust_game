@@ -85,10 +85,10 @@ pub(crate) fn init() {
 }
 
 fn run(wc: &mut WindowContext) {
-
+    
     //map data
     let mut map = world::Map {
-        size: 500,
+        size: 0,
         terrain: Vec::<TileType>::new(),
         image: Vec::<u8>::new(),
         plain_thresh: 0.0,
@@ -98,26 +98,15 @@ fn run(wc: &mut WindowContext) {
     };
 
 
-    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 1000, y: 800, width: 200, height: 80, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 200, y: 200, width: 400, height: 80, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 200, y: 300, width: 400, height: 80, color: Color::RGB(100, 100, 100) });
 
-    //generate map data
-    map.generate_layers();
-    map.create_image();
-    
-    //start fire
-    fire::spawn(&mut map);
 
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();
 
-    //map image texture
-    let mut map_texture = texture_creator
-        .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
-        .unwrap();
 
-    map_texture
-        .update(None, &map.image, map.size as usize * 4)
-        .unwrap();
+
 
     //frame rate calculation
     let mut previous_frame_start = Instant::now();
@@ -137,13 +126,19 @@ fn run(wc: &mut WindowContext) {
             break 'running;
         }
 
-        //display map
-        texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
-        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
-        wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
+        //if map is initialized
+        if map.size != 0{
 
-        //do a game update on the map
-        map.update();
+            let mut map_texture = texture_creator
+            .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
+            .unwrap();
+            //display map
+            texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
+            map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
+            wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
+            map.update();
+        }
+
         
         render(wc);
 
@@ -256,7 +251,7 @@ fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
     // Quit on esc or ctrl
     if wc.im.key_states[4] || wc.im.key_states[202] {return  true;}
 
-    mouse_click(wc.im.mouse_x, wc.im.mouse_y, wc);
+    mouse_click(wc.im.mouse_x, wc.im.mouse_y, wc, map);
 
     return false;
 }

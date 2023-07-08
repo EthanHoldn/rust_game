@@ -1,6 +1,6 @@
 use sdl2::{rect::Rect, pixels::Color, ttf::Font, render::{TextureCreator, Texture}};
 
-use crate::display::WindowContext;
+use crate::{display::WindowContext, world::Map, fire};
 
 #[derive(Clone)]
 pub struct Button{
@@ -40,21 +40,38 @@ pub(crate) fn render(wc: &mut WindowContext) {
         
 }
 
-pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext) {
+pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
     for button in wc.buttons.clone() {
         if x >= button.x as i32 && y >= button.y && x <= button.x + button.width as i32 && y <= button.y + button.height as i32 {
-            ui_distributor(&button.name, wc);
+            ui_distributor(&button.name, wc, map);
         }
     }
     wc.im.left_click = false
 }
 
+fn remove_button(name: &str, wc: &mut WindowContext){
+    for i in 0..wc.buttons.len(){
+        if wc.buttons[i].name == name{
+            wc.buttons.remove(i);
+        }
+    }
+}
 
-fn ui_distributor(name: &str, wc: &mut WindowContext){
+fn ui_distributor(name: &str, wc: &mut WindowContext, map: &mut Map){
+    println!("{}", name);
+
     match name {
         "exit" => {
-            println!("exit");
             std::process::exit(1);
+        }
+        "new world" => {
+            map.size = 500;
+            //generate map data
+            map.generate_layers();
+            map.create_image();
+            //start fire
+            fire::spawn(map);
+            remove_button("new world", wc)
         }
         _ => {
             

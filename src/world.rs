@@ -1,10 +1,5 @@
-use noise::{NoiseFn, Perlin, utils::Color};
+use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
-use sdl2::{
-    pixels::PixelFormatEnum,
-    render::{Canvas, Texture},
-    video::Window,
-};
 
 use crate::fire;
 
@@ -28,7 +23,7 @@ pub enum TileType {
 
 // Map struct 
 #[derive(Clone)]
-pub(crate) struct Map {
+pub struct Map {
     pub size: u32, // Size of pixel array
     pub terrain: Vec<TileType>,
     pub fire: Vec<u8>,
@@ -45,30 +40,30 @@ impl Point {
     }
     
     // Add a point to this point IN PLACE (modify it)
-    fn add_i (&mut self, p : Point) {
+    fn _add_i (&mut self, p : Point) {
         self.x += p.x;
         self.y += p.y;
     }
 
     // Multiply by scalar and return NEW point
-    fn scalar_mult (&mut self, a : i32) -> Point {
+    fn _scalar_mult (&mut self, a : i32) -> Point {
         return  Point { x: self.x * a, y: self.y * a};
     }
 
     // Multiply by scalar IN PLACE
-    fn scalar_mult_i (&mut self, a : i32) {
+    fn _scalar_mult_i (&mut self, a : i32) {
         self.x *= a;
         self.y *= a;
     }
 
     // Print position
     fn print(&mut self){
-        println!("Point: {:},{:}", self.x, self.y);
+        //println!("Point: {:},{:}", self.x, self.y);
     }
 }
 
 // Bounds (x,y) pair to be 
-fn bound (m : Map, x : i32, y : i32){
+fn _bound (_m : Map, _x : i32, _y : i32){
 
 }
 
@@ -91,31 +86,31 @@ impl Map {
     // Generate mountains
     pub fn generate_mountains(&mut self, v_0_range : u32, v_0_min : u32, max_len : u32, max_accel : u32) {
         // Generate a seed point for the fault line and generate initial velocity
-        let mut fault_seed : Point = Point { x: (random::<u32>() % self.size) as i32, y: (random::<u32>() % self.size) as i32 };
+        let fault_seed : Point = Point { x: (random::<u32>() % self.size) as i32, y: (random::<u32>() % self.size) as i32 };
         let mut fault_velocity : Point = Point { x: ((random::<u32>() % v_0_range) + v_0_min) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1), 
                                                  y: ((random::<u32>() % v_0_range) + v_0_min) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1)};
         let mut next_point : Point = fault_seed;
 
         // Set black pixel for debugging and print
         self.update_pixel(fault_seed.x as u32, fault_seed.y as u32, 0, 0, 0, 255);
-        print!("Fault seed: {:},{:}\nv_0: ", fault_seed.x, fault_seed.y);
+        //print!("Fault seed: {:},{:}\nv_0: ", fault_seed.x, fault_seed.y);
         fault_velocity.print();
 
         // NOTE: Could have it follow perlin noise field instead
         // Create each line segment
-        for i in 0..(random::<u32>() % max_len) {
+        for _ in 0..(random::<u32>() % max_len) {
             // Introduce randomized acceleration to fault path
             let mut fault_acceleration : Point = Point { x: (random::<u32>() % max_accel) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1), 
                                                          y: (random::<u32>() % max_accel) as i32 * (((random::<u32>() % 2) * 2) as i32 - 1)};
             fault_velocity = fault_velocity.add(fault_acceleration);
-            print!("Acc: ");
+            //print!("Acc: ");
             fault_acceleration.print();
-            print!("Vel: ");
+            //print!("Vel: ");
             fault_velocity.print();
             
             // Add the velocity vector to previous point to get new point
             next_point = next_point.add(fault_velocity);
-            print!("Next: ");
+            //print!("Next: ");
             next_point.print();
             
             if !self.check_bounds(next_point.x, next_point.y) {

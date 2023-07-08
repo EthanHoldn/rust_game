@@ -1,4 +1,4 @@
-use rand::{random, Rng};
+use rand::{Rng};
 
 use crate::world::{Map, TileType};
 const BORDER: u32 = 5;
@@ -6,7 +6,7 @@ const MAX_BURNT: u8 = 6;
 
 pub(crate) fn index (size:u32, x : u32, y : u32) -> Option<usize> {
     // Gaurd statement to check bounds
-    if x < 0 || y < 0 || x >= size || y >= size { return None;}
+    if x >= size || y >= size { return None;}
 
     return Some((x * size + y) as usize);
 }
@@ -15,7 +15,6 @@ pub(crate) fn simulation_update(map : &mut Map){
     let size = map.size;
     let fire_previous: Vec<u8> = map.fire.clone();
     let active_previous: Vec<bool> = map.active.clone();
-    let mut active_count = 0;
     //for _ in 0..10{
         for x in BORDER..size-BORDER{
             for y in BORDER..size-BORDER{
@@ -23,7 +22,6 @@ pub(crate) fn simulation_update(map : &mut Map){
                 //if tile is on fire 
                 //rand::thread_rng().gen_range(0..100) == 1
                 if active_previous[i]{
-                    active_count += 1;
                     map.fire[i] +=1;
                     if map.fire[i] > MAX_BURNT {
                         map.active[i] = false;
