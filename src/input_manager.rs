@@ -23,7 +23,7 @@ pub(crate) fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
                 wc.im.key_states.retain(|x| *x != key);
             }
             Event::MouseButtonUp {mouse_btn, x, y, .. } => {
-                
+                println!("LMB UP {},{}", x, y);
                 if MouseButton::Left == mouse_btn {
                     wc.im.mouse_x = x *2;
                     wc.im.mouse_y = y *2

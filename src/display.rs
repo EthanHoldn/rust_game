@@ -94,8 +94,8 @@ pub(crate) fn init() -> (WindowContext, Map){
 pub fn run(wc: &mut WindowContext, mut map: Map) {
     
     //main menu buttons
-    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 200, y: 200, width: 400, height: 80, color: Color::RGB(100, 100, 100) });
-    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 200, y: 300, width: 400, height: 80, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0.25, y: 0.3, width: 0.5, height: 0.12, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0.25, y: 0.5, width: 0.5, height: 0.12, color: Color::RGB(100, 100, 100) });
 
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();
@@ -106,6 +106,7 @@ pub fn run(wc: &mut WindowContext, mut map: Map) {
     //main  window rendering loop
     //all window related operations need to be done in here
     'running: loop {
+
         wc.canvas.clear();
 
         // Scale for correct window size
