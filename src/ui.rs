@@ -39,7 +39,6 @@ pub(crate) fn render(wc: &mut WindowContext) {
 
         let middle_x = (to_scrn(button.width, wid) as u32 - text_width)/2;
         let middle_y = (to_scrn(button.height, hei) as u32 - text_height)/2;
-        println!("--{},{}--",to_scrn(button.x, wid), to_scrn(button.y, hei));
         // Draw the text
         wc.canvas.copy(&text_texture, None, Rect::new(to_scrn(button.x, wid) + middle_x as i32, to_scrn(button.y, hei) + middle_y as i32, text_width, text_height))
             .unwrap();
@@ -50,7 +49,6 @@ pub(crate) fn render(wc: &mut WindowContext) {
 
 pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
     for button in wc.buttons.clone() {
-        //println!("{},{} {},{}-{},{}", x,y,to_scrn(button.x, wc.camera.window_width),to_scrn(button.y, wc.camera.window_height),to_scrn(button.x + button.width, wc.camera.window_width) as i32,to_scrn(button.y + button.height, wc.camera.window_height) as i32);
         if x >= to_scrn(button.x, wc.camera.window_width) as i32 && y >= to_scrn(button.y, wc.camera.window_height) 
         && x <= to_scrn(button.x + button.width, wc.camera.window_width) as i32 && y <= to_scrn(button.y + button.height, wc.camera.window_height) as i32 {
             ui_distributor(&button.name, wc, map);
