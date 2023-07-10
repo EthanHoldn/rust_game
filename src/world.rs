@@ -1,7 +1,7 @@
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 
-use crate::fire;
+use crate::{fire, FIRE};
 
 
 #[derive(Copy, Clone)]
@@ -232,6 +232,6 @@ impl Map {
     }
 
     pub fn update(&mut self){
-        fire::simulation_update( self);
+        if FIRE {fire::simulation_update( self)}
     }
 }

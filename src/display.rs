@@ -1,4 +1,5 @@
 extern crate sdl2;
+use crate::{DEBUG};
 use crate::ui::{Button, render};
 use crate::world::{self, TileType, Map};
 use crate::debug::debug;
@@ -13,7 +14,6 @@ use sdl2::video::Window;
 use sdl2::EventPump;
 use std::time::{Duration, Instant};
 
-const DEBUG: bool = true;
 
 pub struct Camera {
     pub x_offset: f32, // Camera pos and zoom
