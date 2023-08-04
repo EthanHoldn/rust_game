@@ -6,8 +6,8 @@ pub mod common;
 pub mod debug;
 pub mod input_manager;
 
-pub const FIRE: bool = false;
-pub const DEBUG: bool = false;
+pub const FIRE: bool = true;
+pub const DEBUG: bool = true;
 
 
 pub fn main() {

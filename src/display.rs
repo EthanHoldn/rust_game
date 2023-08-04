@@ -97,8 +97,8 @@ pub(crate) fn init() -> (WindowContext, Map){
 pub fn run(wc: &mut WindowContext, mut map: Map) {
     
     //main menu buttons
-    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 1.0, y: 1.0, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
-    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0.5, y: 0.5, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0, y: 0, x_align: 0.25, y_align: 0.25, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0, y: 100, x_align: 0.25, y_align: 0.25, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
 
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();

@@ -11,8 +11,17 @@ use crate::{display::WindowContext, fire, world::Map};
 pub struct Button {
     pub name: String, //name used to identify the button
     pub text: String, //Text displayed on button
-    pub x: f32, //X position as a f32 from 0 to 1 where 0 is the left most position and 1 is the right most position
-    pub y: f32, //Y position as a f32 from 0 to 1 where 0 is the up most position and 1 is the down most position
+    pub x: i32, //X and Y position relative to the x and y align
+    pub y: i32, 
+    pub x_align: f32, //Where to orient the coordinate 
+    pub y_align: f32, 
+        //Example:
+        // x = 100; y = 100; x_align = 0.5; y_align = 0.0;
+        // Multiply the alignments by the size of the window
+        // x_align * 800 = 400; y_align * 600 = 0;
+        // Add the X and Y to the alignment calculations
+        // 800 + x = 900; 0 + y = 100;
+        // The center of the button will be at 900 and 100;
     pub width: u32, //width of the button in pixels
     pub height: u32, //heigh of the button in pixels
     pub color: Color, //color of the button
@@ -33,9 +42,9 @@ pub(crate) fn render(wc: &mut WindowContext) {
     for button in wc.buttons.clone() {
         wc.canvas.set_draw_color(button.color);
 
-        let middle_x = (button.x * window_width) as i32;
+        let middle_x = (button.x_align * window_width) as i32 + button.x;
 
-        let middle_y = (button.y * window_height) as i32;
+        let middle_y = (button.y_align * window_height) as i32 + button.y;
 
         //background rectangle
         let _ = wc
@@ -73,10 +82,13 @@ pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
     let window_width = wc.camera.window_width;
     let window_height = wc.camera.window_height;
     for button in wc.buttons.clone() {
-        if x >= (button.x * window_width) as i32 - (button.width / 2) as i32
-            && x <= (button.x * window_width) as i32 + (button.width / 2) as i32
-            && y >= (button.y * window_height) as i32 - (button.height / 2) as i32
-            && y <= (button.y * window_height) as i32 + (button.height / 2) as i32
+        let middle_x = (button.x_align * window_width) as i32 + button.x;
+        let middle_y = (button.y_align * window_height) as i32 + button.y;
+
+        if x >= middle_x - (button.width / 2) as i32
+            && x <= middle_x + (button.width / 2) as i32
+            && y >= middle_y - (button.height / 2) as i32
+            && y <= middle_y + (button.height / 2) as i32
         {
             println!("slgdkhj");
             ui_distributor(&button.name, wc, map);
