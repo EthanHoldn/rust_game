@@ -31,6 +31,7 @@ pub struct Map {
     pub image: Vec<u8>,
     pub plain_thresh: f32,
     pub mountain_thresh: f32,
+    pub simulating: bool,
 }
 
 impl Point {

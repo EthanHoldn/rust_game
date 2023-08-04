@@ -1,5 +1,6 @@
+use std::env;
 extern crate sdl2;
-use crate::{DEBUG};
+use crate::DEBUG;
 use crate::ui::{Button, render};
 use crate::world::{self, TileType, Map};
 use crate::debug::debug;
@@ -7,7 +8,7 @@ use crate::input_manager::inputs;
 
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::{Rect};
+use sdl2::rect::Rect;
 use sdl2::render::{Canvas, TextureCreator, Texture};
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::Window;
@@ -33,6 +34,7 @@ pub struct WindowContext {
     pub camera: Camera,
     pub im: IM,
     pub buttons: Vec<Button>,
+    pub scale: i32,
 }
 pub struct IM {
     pub mouse_x: i32,
@@ -46,10 +48,9 @@ pub struct IM {
 pub(crate) fn init() -> (WindowContext, Map){
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
-
+    
     let window = video_subsystem
         .window("game", 800, 600)
-        .allow_highdpi()
         .resizable()
         .build()
         .unwrap();
@@ -76,6 +77,7 @@ pub(crate) fn init() -> (WindowContext, Map){
             clicks: Vec::<(u32,u32)>::new(), 
         },
         buttons: Vec::<Button>::new(),
+        scale: 4,
         
     };
     let map = world::Map {
@@ -86,6 +88,7 @@ pub(crate) fn init() -> (WindowContext, Map){
         mountain_thresh: 0.0,
         fire: Vec::<u8>::new(),
         active: Vec::<bool>::new(),
+        simulating: false
     };
 
     return (wc, map);
@@ -94,8 +97,8 @@ pub(crate) fn init() -> (WindowContext, Map){
 pub fn run(wc: &mut WindowContext, mut map: Map) {
     
     //main menu buttons
-    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0.25, y: 0.3, width: 0.5, height: 0.12, color: Color::RGB(100, 100, 100) });
-    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0.25, y: 0.5, width: 0.5, height: 0.12, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 1.0, y: 1.0, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0.5, y: 0.5, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
 
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();
