@@ -3,7 +3,7 @@ extern crate sdl2;
 use crate::DEBUG;
 use crate::ui::{Button, render};
 use crate::world::{self, TileType, Map};
-use crate::debug::debug;
+//use crate::debug::debug;
 use crate::input_manager::inputs;
 
 use sdl2::keyboard::Keycode;
@@ -54,7 +54,7 @@ pub(crate) fn init() -> (WindowContext, Map){
         .resizable()
         .build()
         .unwrap();
-    let wc = WindowContext{
+    let mut wc = WindowContext{
         canvas: window.into_canvas().build().unwrap(),
         event_pump: sdl_context.event_pump().unwrap(),
         ttf_context: sdl2::ttf::init().unwrap(),
@@ -91,65 +91,45 @@ pub(crate) fn init() -> (WindowContext, Map){
         simulating: false
     };
 
-    return (wc, map);
-}
-
-pub fn run(wc: &mut WindowContext, mut map: Map) {
-    
     //main menu buttons
+
     wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0, y: 0, x_align: 0.25, y_align: 0.25, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
     wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0, y: 100, x_align: 0.25, y_align: 0.25, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
 
+    return (wc, map);
+}
+
+pub fn run(wc: &mut WindowContext, mut map: &mut Map) -> bool {
+    
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();
-
-    //frame rate calculation
-    let mut previous_frame_start = Instant::now();
-
-    //main  window rendering loop
-    //all window related operations need to be done in here
-    'running: loop {
-
-        wc.canvas.clear();
-
-        // Scale for correct window size
-        wc.camera.window_width = wc.canvas.window().size().0 as f32;
-        wc.camera.window_height = wc.canvas.window().size().1 as f32;
-
-        //get user inputs
-        if inputs(wc, &mut map) {
-            break 'running;
-        }
-
-        //if map is initialized
-        if map.size != 0{
-
-            let mut map_texture = texture_creator
-            .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
-            .unwrap();
-            //display map
-            texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
-            map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
-            wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
-            map.update();
-        }
-
-        
-        render(wc);
-
-        //FPS calculations
-        let elapsed: Duration = previous_frame_start.elapsed();
-        
-        //show debug info 
-        if DEBUG {debug(wc, elapsed, &mut map);}
-        
-        let _ = wc.canvas.present();
-
-        if elapsed < wc.camera.target_frame_time {
-            std::thread::sleep(wc.camera.target_frame_time - elapsed);
-        }
-        previous_frame_start = Instant::now();
+    // Scale for correct window size
+    wc.camera.window_width = wc.canvas.window().size().0 as f32;
+    wc.camera.window_height = wc.canvas.window().size().1 as f32;
+    //get user inputs
+    if inputs(wc, &mut map) {
+        return false;
     }
+    //if map is initialized
+    if map.size != 0{
+        let mut map_texture = texture_creator
+        .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
+        .unwrap();
+        //display map
+        texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
+        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
+        wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
+        map.update();
+    }
+    
+    render(wc);
+    
+    //show debug info 
+    //if DEBUG {debug(wc, None, &mut map);}
+    
+    let _ = wc.canvas.present();
+    return true;
+
 }
 
 pub(crate) fn display_text(wc: &mut WindowContext, x:i32, y: i32, text: &str){

@@ -4,7 +4,7 @@ use sdl2::rect::Rect;
 
 use crate::{display::{WindowContext, display_text}, world::Map, fire};
 
-pub(crate) fn debug(wc: &mut WindowContext, elapsed: Duration, map: &mut Map){
+/*pub(crate) fn debug(wc: &mut WindowContext, elapsed: Duration, map: &mut Map){
 
     //calculate framerate
     let elapsed_sec = elapsed.as_secs_f64();
@@ -41,3 +41,4 @@ pub(crate) fn debug(wc: &mut WindowContext, elapsed: Duration, map: &mut Map){
 
 
 }
+*/
