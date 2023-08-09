@@ -140,32 +140,35 @@ impl Map {
         self.fire = vec![0; (self.size*self.size).try_into().unwrap()];
         self.active = vec![false; (self.size*self.size).try_into().unwrap()];
         // Create noise instance, pixel array, and set scale
-        let perlin: Perlin = Perlin::new(1);
+        let mut rng: ThreadRng = rand::thread_rng();
+        let perlin: Perlin = Perlin::new(rng.gen::<u32>());
 
         // scale factor for perlin noise
         // bigger number means the changes in terrain are more spread out
-        let scale: f64 = 30.0;
+        let scale_a: f64 = 100.0;
+        let scale_b: f64 = 10.0;
 
         // For each pixel
         for i in 0..(self.size * self.size) {
             // Create perlin noise based on position
-            let mut rng: ThreadRng = rand::thread_rng();
             let x: u32 = i % self.size;
             let y: u32 = i / self.size;
-            let mut pln: f64 = perlin.get([x as f64 / scale, y as f64 / scale, 0.0]) + 1.0;
-            let pln_stable: f64 = pln;
-            pln = pln + rng.gen::<f64>() * 0.1;
+            let noise_a = perlin.get([x as f64 / scale_a, y as f64 / scale_a, 0.0]);
+            let noise_b = perlin.get([x as f64 / scale_b, y as f64 / scale_b, 0.0]);
+
+            let id: f64 = (noise_a + noise_b*0.2).abs()/1.2;
+
             //pln = pln + rng.gen::<f64>()*0.1;
 
             // Set color based on noise value
-            if pln_stable >= 0.0 && pln_stable < 0.3 {
+            if id >= 0.0 && id < 0.02 {
                 //water
                 self.terrain.push(TileType::Water);
-            } else if pln >= 0.3 && pln < 0.4 {// marsh
+            } else if id >= 0.02 && id < 0.2 {// marsh
                 self.terrain.push(TileType::Brush);
-            } else if pln >= 0.4 && pln < 1.3 {// grass
+            } else if id >= 0.2 && id < 0.5 {// grass
                 self.terrain.push(TileType::Grass);
-            } else if pln >= 1.3 {// grass
+            } else if id >= 0.5 {// grass
                 self.terrain.push(TileType::Mountain);
             } else {//MAP_ERROR
                 self.terrain.push(TileType::Invalid);

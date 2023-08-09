@@ -7,7 +7,7 @@ pub mod debug;
 pub mod input_manager;
 
 pub const FIRE: bool = true;
-pub const DEBUG: bool = true;
+pub const DEBUG: bool = false;
 
 
 pub fn main() {
