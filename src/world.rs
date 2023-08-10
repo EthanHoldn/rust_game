@@ -29,8 +29,9 @@ pub struct Map {
     pub fire: Vec<u8>,
     pub active: Vec<bool>,
     pub image: Vec<u8>,
-    pub plain_thresh: f32,
-    pub mountain_thresh: f32,
+    pub plain_thresh: f64,
+    pub marsh_thresh: f64,
+    pub grass_thresh: f64,
     pub simulating: bool,
 }
 
@@ -161,14 +162,14 @@ impl Map {
             //pln = pln + rng.gen::<f64>()*0.1;
 
             // Set color based on noise value
-            if id >= 0.0 && id < 0.02 {
+            if id >= 0.0 && id < self.marsh_thresh {
                 //water
                 self.terrain.push(TileType::Water);
-            } else if id >= 0.02 && id < 0.2 {// marsh
+            } else if id >=self.marsh_thresh && id < self.plain_thresh {// marsh
                 self.terrain.push(TileType::Brush);
-            } else if id >= 0.2 && id < 0.5 {// grass
+            } else if id >= self.plain_thresh && id < self.grass_thresh {// grass
                 self.terrain.push(TileType::Grass);
-            } else if id >= 0.5 {// grass
+            } else if id >= self.grass_thresh {// grass
                 self.terrain.push(TileType::Mountain);
             } else {//MAP_ERROR
                 self.terrain.push(TileType::Invalid);

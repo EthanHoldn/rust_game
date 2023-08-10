@@ -82,8 +82,9 @@ pub(crate) fn init() -> (WindowContext, Map){
         size: 0,
         terrain: Vec::<TileType>::new(),
         image: Vec::<u8>::new(),
-        plain_thresh: 0.0,
-        mountain_thresh: 0.0,
+        marsh_thresh: 0.03,
+        plain_thresh: 0.2,
+        grass_thresh: 0.5,
         fire: Vec::<u8>::new(),
         active: Vec::<bool>::new(),
         simulating: false
