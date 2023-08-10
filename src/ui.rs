@@ -34,7 +34,7 @@ pub fn to_scrn(pos: f32, scale: f32) -> i32 {
 pub(crate) fn render(wc: &mut WindowContext) {
     let font: Font = wc
         .ttf_context
-        .load_font("assets/fonts/FiraSans-Bold.ttf", 20)
+        .load_font("assets/fonts/Avenir Regular.ttf", 20)
         .unwrap();
     let window_width = wc.camera.window_width;
     let window_height = wc.camera.window_height;
@@ -52,7 +52,7 @@ pub(crate) fn render(wc: &mut WindowContext) {
             .fill_rect(Rect::new(middle_x - button.width as i32/2, middle_y - button.height as i32/2, button.width, button.height));
 
         // text rendering
-        let text_surface = font.render(&button.text).blended(Color::BLUE).unwrap();
+        let text_surface = font.render(&button.text).blended(Color::BLACK).unwrap();
         let text_texture_creator: TextureCreator<_> = wc.canvas.texture_creator();
         let text_texture: Texture = text_texture_creator
             .create_texture_from_surface(&text_surface)

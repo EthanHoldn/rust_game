@@ -1,18 +1,16 @@
-pub mod display;
-pub mod world;
-pub mod fire;
-pub mod ui;
 pub mod common;
 pub mod debug;
+pub mod display;
+pub mod fire;
 pub mod input_manager;
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::{thread, time};
+pub mod ui;
+pub mod world;
+use std::time::SystemTime;
+use std::thread;
 
-use ui::render;
 
 pub const FIRE: bool = true;
 pub const DEBUG: bool = true;
-
 
 pub fn main() {
     //initialize the display
@@ -22,14 +20,36 @@ pub fn main() {
 
     //start the game loop
     loop {
+        let start_time = SystemTime::now();
+        let mut previous_time = SystemTime::now();
+
         window_context.canvas.clear();
-        let start = SystemTime::now();
-        if !display::run( window_context, &mut map){break;}
-        let after_display = SystemTime::now();
-        render( window_context);
+        if !display::run(window_context, &mut map) {
+            break;
+        }
+
+        let after_display = previous_time.elapsed().unwrap().as_nanos();
+        previous_time = SystemTime::now();
+
+        ui::render(window_context);
+
+        let after_ui = previous_time.elapsed().unwrap().as_nanos();
+        previous_time = SystemTime::now();
+
+        if map.size != 0 {
+            map.update();
+        }
+
+        let after_map = previous_time.elapsed().unwrap().as_nanos();
+        previous_time = SystemTime::now();
+        
+        debug::debug(window_context,&mut map, start_time.elapsed().unwrap().as_nanos(), after_display,after_ui,after_map);
+
         let _ = window_context.canvas.present();
-        thread::sleep(time::Duration::from_millis(100));
 
-
+        if start_time.elapsed().unwrap() < window_context.camera.target_frame_time{
+            let remaining = window_context.camera.target_frame_time - start_time.elapsed().unwrap();
+            thread::sleep(remaining);
+        }
     }
 }

@@ -1,6 +1,4 @@
-use std::env;
 extern crate sdl2;
-use crate::DEBUG;
 use crate::ui::{Button, render};
 use crate::world::{self, TileType, Map};
 //use crate::debug::debug;
@@ -119,21 +117,18 @@ pub fn run(wc: &mut WindowContext, mut map: &mut Map) -> bool {
         texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
         map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
         wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
-        map.update();
     }
     
-    render(wc);
     
     //show debug info 
     //if DEBUG {debug(wc, None, &mut map);}
     
-    let _ = wc.canvas.present();
     return true;
 
 }
 
 pub(crate) fn display_text(wc: &mut WindowContext, x:i32, y: i32, text: &str){
-    let font: Font = wc.ttf_context.load_font("assets/fonts/FiraSans-Bold.ttf", 50 ).unwrap();
+    let font: Font = wc.ttf_context.load_font("assets/fonts/Avenir Regular.ttf", 20 ).unwrap();
 
     let text_surface = font
         .render(text)

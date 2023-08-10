@@ -4,16 +4,18 @@ use sdl2::rect::Rect;
 
 use crate::{display::{WindowContext, display_text}, world::Map, fire};
 
-/*pub(crate) fn debug(wc: &mut WindowContext, elapsed: Duration, map: &mut Map){
+pub(crate) fn debug(wc: &mut WindowContext, map: &mut Map, total_time: u128, after_display: u128, after_ui: u128, after_map: u128){
+    println!("{}",(after_ui));
+    println!("{}",(after_display));
 
-    //calculate framerate
-    let elapsed_sec = elapsed.as_secs_f64();
-    let remaining_sec = wc.camera.target_frame_time.as_secs_f64()-elapsed_sec;
-    let actual_framerate = 1.0/elapsed_sec;
+    let display_time = (after_display) as f32 / 1_000_000.0;
+    let ui_time = (after_ui) as f32 / 1_000_000.0;
+    let map_time = (after_map) as f32 / 1_000_000.0;
+    
     //FPS display
-    display_text(wc, 10,10, &format!("{:.2}",elapsed_sec*1000.0));
-    display_text(wc, 10,110, &format!("{:.2}",remaining_sec*1000.0));
-    display_text(wc, 10,210, &format!("{:.2}",actual_framerate));
+    display_text(wc, 10,10, &format!("{:.2}",display_time));
+    display_text(wc, 10,30, &format!("{:.2}",ui_time));
+    display_text(wc, 10,50, &format!("{:.2}",map_time));
 
     //show map data
     let middle_x = (wc.camera.window_width/2.0) as i32;
@@ -41,4 +43,3 @@ use crate::{display::{WindowContext, display_text}, world::Map, fire};
 
 
 }
-*/
