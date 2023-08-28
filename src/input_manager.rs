@@ -38,10 +38,10 @@ pub(crate) fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
     }
 
     //camera movement
-    if wc.im.key_states.contains(&Keycode::W) { // W  up
+    if wc.im.key_states.contains(&Keycode::W){ // W  up
         wc.camera.y_offset += wc.camera.movement_speed
     }
-    if wc.im.key_states.contains(&Keycode::A) { // A  up
+    if wc.im.key_states.contains(&Keycode::A){ // A  up
         wc.camera.x_offset += wc.camera.movement_speed
     }
     if wc.im.key_states.contains(&Keycode::S) { // S  up
@@ -50,24 +50,41 @@ pub(crate) fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
     if wc.im.key_states.contains(&Keycode::D) { // D  up
         wc.camera.x_offset -= wc.camera.movement_speed
     }
+
     //camera zoom
     
-    if wc.im.key_states.contains(&Keycode::E) { // E  zoom in
+    if wc.im.key_states.contains(&Keycode::E) && wc.camera.zoom < 25.0{ // E  zoom in
+        println!("{}", wc.camera.zoom);
         let relative_zoom_speed = wc.camera.zoom_speed * wc.camera.zoom;
         wc.camera.zoom += relative_zoom_speed;
         wc.camera.x_offset += (relative_zoom_speed * map.size as f32) * (((wc.camera.x_offset - (wc.camera.window_width / 2.0)) / wc.camera.zoom) / (map.size as f32));
         wc.camera.y_offset += (relative_zoom_speed * map.size as f32) * (((wc.camera.y_offset - (wc.camera.window_height / 2.0)) / wc.camera.zoom) / (map.size as f32));
     } 
-    if wc.im.key_states.contains(&Keycode::Q) { // Q  zoom out
-        
-
+    //let max_zoom_out = 
+    if wc.im.key_states.contains(&Keycode::Q) && wc.camera.window_width < map.size as f32 * wc.camera.zoom{ // Q  zoom out
+        println!("{}", wc.camera.zoom);
         let relative_zoom_speed = wc.camera.zoom_speed * wc.camera.zoom;
         wc.camera.zoom -= relative_zoom_speed;
         wc.camera.x_offset -= (relative_zoom_speed*map.size as f32) * (((wc.camera.x_offset-(wc.camera.window_width/2.0))/wc.camera.zoom)/(map.size as f32));
         wc.camera.y_offset -= (relative_zoom_speed*map.size as f32) * (((wc.camera.y_offset-(wc.camera.window_height/2.0))/wc.camera.zoom)/(map.size as f32));
+    }
 
+    if wc.camera.window_width > map.size as f32 * wc.camera.zoom{
+        wc.camera.zoom = wc.camera.window_width/map.size as f32
+    }
 
+    if wc.camera.x_offset > 0.0{
+        wc.camera.x_offset = 0.0;
+    }
+    if wc.camera.y_offset > 0.0{
+        wc.camera.y_offset = 0.0;
+    }
 
+    if wc.camera.y_offset +(map.size as f32*wc.camera.zoom) < wc.camera.window_height {
+        wc.camera.y_offset = wc.camera.window_height - (map.size as f32*wc.camera.zoom);
+    }
+    if wc.camera.x_offset +(map.size as f32*wc.camera.zoom) < wc.camera.window_width {
+        wc.camera.x_offset = wc.camera.window_width - (map.size as f32*wc.camera.zoom);
     }
 
     // Quit on esc or ctrl

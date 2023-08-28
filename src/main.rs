@@ -10,7 +10,7 @@ use std::thread;
 
 
 pub const FIRE: bool = true;
-pub const DEBUG: bool = true;
+pub const DEBUG: bool = false;
 
 pub fn main() {
     //initialize the display

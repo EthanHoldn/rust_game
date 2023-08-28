@@ -5,8 +5,6 @@ use sdl2::rect::Rect;
 use crate::{display::{WindowContext, display_text}, world::Map, fire};
 
 pub(crate) fn debug(wc: &mut WindowContext, map: &mut Map, total_time: u128, after_display: u128, after_ui: u128, after_map: u128){
-    println!("{}",(after_ui));
-    println!("{}",(after_display));
 
     let display_time = (after_display) as f32 / 1_000_000.0;
     let ui_time = (after_ui) as f32 / 1_000_000.0;

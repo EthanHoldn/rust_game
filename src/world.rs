@@ -16,9 +16,11 @@ pub enum TileType {
     Invalid,
     Water,
     Grass,
+    Marsh,
     Brush,
     Tree,
-    Mountain
+    Mountain,
+    Road,
 }
 
 // Map struct 
@@ -29,8 +31,9 @@ pub struct Map {
     pub fire: Vec<u8>,
     pub active: Vec<bool>,
     pub image: Vec<u8>,
-    pub plain_thresh: f64,
     pub marsh_thresh: f64,
+    pub tree_thresh: f64,
+    pub brush_thresh: f64,
     pub grass_thresh: f64,
     pub simulating: bool,
 }
@@ -162,19 +165,45 @@ impl Map {
             //pln = pln + rng.gen::<f64>()*0.1;
 
             // Set color based on noise value
-            if id >= 0.0 && id < self.marsh_thresh {
+            if id < self.marsh_thresh {
                 //water
                 self.terrain.push(TileType::Water);
-            } else if id >=self.marsh_thresh && id < self.plain_thresh {// marsh
+            } else if id < self.marsh_thresh {
+                // marsh
+                self.terrain.push(TileType::Marsh);
+            } else if id < self.tree_thresh {
+                // grass
+                self.terrain.push(TileType::Tree);
+            } else if id < self.brush_thresh {
+                // grass
                 self.terrain.push(TileType::Brush);
-            } else if id >= self.plain_thresh && id < self.grass_thresh {// grass
+            } else if id < self.grass_thresh {
+                // grass
                 self.terrain.push(TileType::Grass);
-            } else if id >= self.grass_thresh {// grass
+            } else if id >= self.grass_thresh {
+                // grass
                 self.terrain.push(TileType::Mountain);
             } else {//MAP_ERROR
                 self.terrain.push(TileType::Invalid);
             }
         }
+        /*
+        let scale_a: f64 = 100.0;
+        //let scale_b: f64 = 10.0;
+        let perlin: Perlin = Perlin::new(rng.gen::<u32>());
+        for i in 0..(self.size*self.size){
+            let x: u32 = i % self.size;
+            let y: u32 = i / self.size;
+            let noise_a = perlin.get([x as f64 / scale_a, y as f64 / scale_a, 0.0]);
+            //let noise_b = perlin.get([x as f64 / scale_b, y as f64 / scale_b, 0.0]);
+            //let id: f64 = (noise_a + noise_b*0.2).abs()/1.2;
+            let id = noise_a.abs();
+            if id < 0.01 {
+                self.terrain[(y*self.size+x) as usize] = TileType::Road
+            }
+
+        }
+        */  
     }
 
     // Generate the map image
@@ -196,6 +225,12 @@ impl Map {
                     g = 147.0 + rng.gen::<f32>() * 20.0;
                     b = 173.0;
                 }
+                TileType::Marsh => {
+                    //trees
+                    r = 83.0;
+                    g = 178.0 + rng.gen::<f32>() * 20.0;
+                    b = 28.0;
+                }
                 TileType::Tree => {
                     //trees
                     r = 83.0;
@@ -216,6 +251,12 @@ impl Map {
                 } 
                 TileType::Mountain => {
                     let a = 160.0 + rng.gen::<f32>() * 20.0;
+                    r = a;
+                    g = a;
+                    b = a;
+                }
+                TileType::Road => {
+                    let a = 80.0 + rng.gen::<f32>() * 20.0;
                     r = a;
                     g = a;
                     b = a;

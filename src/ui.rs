@@ -119,6 +119,7 @@ fn ui_distributor(name: &str, wc: &mut WindowContext, map: &mut Map) {
             map.create_image();
             //start fire
             fire::spawn(map);
+            wc.camera.zoom = 5.0;
             remove_button("new world", wc)
         }
         _ => {}

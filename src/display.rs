@@ -50,6 +50,7 @@ pub(crate) fn init() -> (WindowContext, Map){
     let window = video_subsystem
         .window("game", 800, 600)
         .resizable()
+        .maximized()
         .build()
         .unwrap();
     let mut wc = WindowContext{
@@ -82,9 +83,11 @@ pub(crate) fn init() -> (WindowContext, Map){
         size: 0,
         terrain: Vec::<TileType>::new(),
         image: Vec::<u8>::new(),
-        marsh_thresh: 0.03,
-        plain_thresh: 0.2,
+        marsh_thresh: 0.025,
+        tree_thresh: 0.045,
+        brush_thresh: 0.14,
         grass_thresh: 0.5,
+
         fire: Vec::<u8>::new(),
         active: Vec::<bool>::new(),
         simulating: false
