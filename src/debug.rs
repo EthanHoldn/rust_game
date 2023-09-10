@@ -11,9 +11,10 @@ pub(crate) fn debug(wc: &mut WindowContext, map: &mut Map, total_time: u128, aft
     let map_time = (after_map) as f32 / 1_000_000.0;
     
     //FPS display
-    display_text(wc, 10,10, &format!("{:.2}",display_time));
-    display_text(wc, 10,30, &format!("{:.2}",ui_time));
-    display_text(wc, 10,50, &format!("{:.2}",map_time));
+    display_text(wc, 10,10, &format!("Display: {:.2}",display_time));
+    display_text(wc, 10,30, &format!("UI: {:.2}",ui_time));
+    display_text(wc, 10,50, &format!("Map: {:.2}",map_time));
+    display_text(wc, 10,70, &format!("Active fire: {:.2}",map.active.iter().filter(|&n| *n == true).count()));
 
     //show map data
     let middle_x = (wc.camera.window_width/2.0) as i32;
@@ -37,7 +38,6 @@ pub(crate) fn debug(wc: &mut WindowContext, map: &mut Map, total_time: u128, aft
         display_text(wc, middle_x, middle_y+20, fire.to_string().as_str());
     }
 
-    map.update_pixel(x, y, 0, 255, 0, 255);
 
 
 }

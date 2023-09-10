@@ -36,6 +36,7 @@ pub struct Map {
     pub brush_thresh: f64,
     pub grass_thresh: f64,
     pub simulating: bool,
+    pub modulator: u8,
 }
 
 impl Point {
@@ -143,6 +144,7 @@ impl Map {
     pub fn generate_layers(&mut self) {
         self.fire = vec![0; (self.size*self.size).try_into().unwrap()];
         self.active = vec![false; (self.size*self.size).try_into().unwrap()];
+        self.terrain.clear();
         // Create noise instance, pixel array, and set scale
         let mut rng: ThreadRng = rand::thread_rng();
         let perlin: Perlin = Perlin::new(rng.gen::<u32>());

@@ -15,13 +15,18 @@ pub(crate) fn simulation_update(map : &mut Map){
     let size = map.size;
     let fire_previous: Vec<u8> = map.fire.clone();
     let active_previous: Vec<bool> = map.active.clone();
+    if map.modulator == 251 {
+        map.modulator = 0
+    };
+    let m = map.modulator%41;
+    map.modulator +=1;
     //for _ in 0..10{
         for x in BORDER..size-BORDER{
             for y in BORDER..size-BORDER{
                 let i = index(size,x,y).unwrap();
                 //if tile is on fire 
                 //rand::thread_rng().gen_range(0..100) == 1
-                if active_previous[i]{
+                if i %41 == m as usize && active_previous[i]{
                     map.fire[i] +=1;
                     if map.fire[i] > MAX_BURNT {
                         map.active[i] = false;

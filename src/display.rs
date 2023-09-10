@@ -1,5 +1,6 @@
 extern crate sdl2;
-use crate::ui::{Button, render};
+use sdl2::render::BlendMode;
+use crate::ui::{Button, render, UIScreens, UIBox};
 use crate::world::{self, TileType, Map};
 //use crate::debug::debug;
 use crate::input_manager::inputs;
@@ -32,7 +33,10 @@ pub struct WindowContext {
     pub camera: Camera,
     pub im: IM,
     pub buttons: Vec<Button>,
-    pub scale: i32,
+    pub ui_box: Vec<UIBox>,
+    pub ui_scale: f32,
+    pub screen: UIScreens,
+
 }
 pub struct IM {
     pub mouse_x: i32,
@@ -51,6 +55,7 @@ pub(crate) fn init() -> (WindowContext, Map){
         .window("game", 800, 600)
         .resizable()
         .maximized()
+        .allow_highdpi()
         .build()
         .unwrap();
     let mut wc = WindowContext{
@@ -76,11 +81,14 @@ pub(crate) fn init() -> (WindowContext, Map){
             clicks: Vec::<(u32,u32)>::new(), 
         },
         buttons: Vec::<Button>::new(),
-        scale: 4,
+        screen: UIScreens::MainMenu,
+        ui_box: Vec::<UIBox>::new(),
+        ui_scale: 2.0,
+        
         
     };
-    let map = world::Map {
-        size: 0,
+    let mut map = world::Map {
+        size: 200,
         terrain: Vec::<TileType>::new(),
         image: Vec::<u8>::new(),
         marsh_thresh: 0.025,
@@ -90,49 +98,59 @@ pub(crate) fn init() -> (WindowContext, Map){
 
         fire: Vec::<u8>::new(),
         active: Vec::<bool>::new(),
-        simulating: false
+        simulating: false,
+        modulator: 0,
     };
 
+    map.generate_layers();
+    map.create_image();
+    wc.canvas.set_blend_mode(BlendMode::Blend);
     //main menu buttons
+    wc.ui_box.push(UIBox { name: "main_menu".to_owned(), x: 0.5, y: 0.5, width: 220, height: 250, color: Color::RGB(80, 80, 80) });
+    wc.buttons.push(Button { name: "new world".to_owned(), text: "New Game".to_owned(), x: 0, y: -90, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "load world".to_owned(), text: "Load Game".to_owned(), x: 0, y: -30, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "settings".to_owned(), text: "Settings".to_owned(), x: 0, y: 30, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
 
-    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0, y: 0, x_align: 0.25, y_align: 0.25, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
-    wc.buttons.push(Button { name: "new world".to_owned(), text: "New World".to_owned(), x: 0, y: 100, x_align: 0.25, y_align: 0.25, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
+    wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0, y: 90, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(200, 100, 100) });
 
     return (wc, map);
 }
 
 pub fn run(wc: &mut WindowContext, mut map: &mut Map) -> bool {
-    
     //used to generate textures from a Vec<u8>
     let texture_creator = wc.canvas.texture_creator();
     // Scale for correct window size
-    wc.camera.window_width = wc.canvas.window().size().0 as f32;
-    wc.camera.window_height = wc.canvas.window().size().1 as f32;
+    wc.camera.window_width = wc.canvas.window().size().0 as f32*2.0;
+    wc.camera.window_height = wc.canvas.window().size().1 as f32*2.0;
+    println!("1.3");
+
     //get user inputs
     if inputs(wc, &mut map) {
         return false;
     }
-    //if map is initialized
-    if map.size != 0{
-        let mut map_texture = texture_creator
-        .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
-        .unwrap();
-        //display map
-        texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
-        map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
-        wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
-    }
+
+    let mut map_texture = texture_creator
+    .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
+    .unwrap();
+    println!("1.4");
+
+    //display map
+    texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
+    println!("1.5");
+    println!("{}", map.size);
+    println!("{}", map.image.len());
+
+    map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
+
+    wc.canvas.copy( &map_texture, None, Rect::new( wc.camera.x_offset as i32, wc.camera.y_offset as i32, (wc.camera.zoom * map.size as f32) as u32, (wc.camera.zoom * map.size as f32) as u32,),).unwrap();
     
-    
-    //show debug info 
-    //if DEBUG {debug(wc, None, &mut map);}
     
     return true;
 
 }
 
 pub(crate) fn display_text(wc: &mut WindowContext, x:i32, y: i32, text: &str){
-    let font: Font = wc.ttf_context.load_font("assets/fonts/Avenir Regular.ttf", 20 ).unwrap();
+    let font: Font = wc.ttf_context.load_font("assets/fonts/Avenir Regular.ttf", ((20.0*wc.ui_scale) as i16).try_into().unwrap() ).unwrap();
 
     let text_surface = font
         .render(text)
@@ -149,7 +167,7 @@ pub(crate) fn display_text(wc: &mut WindowContext, x:i32, y: i32, text: &str){
         let text_height = text_surface.height();
 
         // Draw the text
-        wc.canvas.copy(&text_texture, None, Rect::new(x, y, text_width, text_height))
+        wc.canvas.copy(&text_texture, None, Rect::new((x as f32*wc.ui_scale) as i32, (y as f32*wc.ui_scale) as i32, text_width, text_height))
             .unwrap();
 }
 
