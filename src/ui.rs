@@ -6,7 +6,7 @@ use sdl2::{
 };
 
 use crate::{display::WindowContext, fire, world::Map};
-
+const BORDER: f32 = 4.0;
 pub enum UIScreens {
     MainMenu,
     World,
@@ -47,49 +47,83 @@ pub fn to_scrn(pos: f32, scale: f32) -> i32 {
 }
 
 pub(crate) fn render(wc: &mut WindowContext) {
-    let font: Font = wc.ttf_context.load_font("assets/fonts/Avenir Regular.ttf", (20.0 * wc.ui_scale) as u16).unwrap();
-    let window_width = wc.camera.window_width;
-    let window_height = wc.camera.window_height;
+    if let UIScreens::World = wc.screen {
+        in_world_ui_render(wc);
+    }
+
+    ui_box_render(wc);
+
+    button_render(wc);
+
 
     
+
+}
+
+fn in_world_ui_render(wc: &mut WindowContext){
+    wc.canvas.set_draw_color(Color::RGB(80, 80, 80));
+    let hight = (80.0 * wc.ui_scale) as u32;
+    let _ = wc.canvas.fill_rect(Rect::new(0, wc.camera.window_height as i32 - hight as i32 , wc.camera.window_width as u32, hight));
+    wc.canvas.set_draw_color(Color::RGB(90, 90, 90));
+    let border = (BORDER*wc.ui_scale) as i32;
+    let _ = wc.canvas.fill_rect(Rect::new(0, wc.camera.window_height as i32 - hight as i32 - border, wc.camera.window_width as u32, border as u32));
+
+}
+
+fn ui_box_render(wc: &mut WindowContext){
     for ui_box in wc.ui_box.clone() {
+        let window_width = wc.camera.window_width;
+        let window_height = wc.camera.window_height;
         let middle_x: i32 = (ui_box.x * window_width) as i32;
         let middle_y: i32 = (ui_box.y * window_height) as i32;
         let top_left_x = middle_x - (ui_box.width as f32 * wc.ui_scale) as i32/2;
         let top_left_y = middle_y - (ui_box.height as f32 * wc.ui_scale) as i32/2;
-        
-        //background rectangle
-        let border = (4.0 * wc.ui_scale) as i32;
-        println!("{}",ui_box.name);
+        let scaled_width = (ui_box.width as f32 * wc.ui_scale) as u32;
+        let scaled_height = (ui_box.height as f32 * wc.ui_scale) as u32;
+        let border = (BORDER * wc.ui_scale) as u32;
         let light = Color::RGB(ui_box.color.r +10, ui_box.color.g+10, ui_box.color.b+10);
-        let dark = Color::RGB(ui_box.color.r-10, ui_box.color.g-10, ui_box.color.b-10);
+        let dark =Color::RGB(ui_box.color.r-10, ui_box.color.g-10, ui_box.color.b-10);
 
-        for i in 0..(ui_box.width as f32 * wc.ui_scale) as u32{
-            for j in 0..(ui_box.height as f32 * wc.ui_scale) as u32{
-                let x = i as i32; //width
-                let y = j as i32; //height
 
-                if x == 0 || x == (ui_box.width as f32 * wc.ui_scale) as i32-1 || y == 0 || y == (ui_box.height as f32 * wc.ui_scale) as i32 -1 {
-                    wc.canvas.set_draw_color(Color::BLACK);
-                } else if 
-                (x as i32 - y as i32 > 0 && y < border) || 
-                (x + border > (ui_box.width as f32 * wc.ui_scale) as i32 && x - y > (ui_box.width as f32 * wc.ui_scale) as i32 - (ui_box.height as f32 * wc.ui_scale) as i32) 
-                {
-                    wc.canvas.set_draw_color(light);
-                } else if 
-                (y as i32 - x as i32 > 0 && x < border) || 
-                (y + border > (ui_box.height as f32 * wc.ui_scale) as i32 && y - x > (ui_box.height as f32 * wc.ui_scale) as i32 - (ui_box.width as f32 * wc.ui_scale) as i32) 
-                {
-                    wc.canvas.set_draw_color(dark);
-                } else {
+        // top left and bottom right
+        for x in 0..border as i32{
+            for y in 0..border as i32{
+                if  x - y > 0{
+                    wc.canvas.set_draw_color(light)
+                } else if x - y < 0 {
+                    wc.canvas.set_draw_color(dark)
+                } else if x == y {
                     wc.canvas.set_draw_color(ui_box.color);
-
                 }
                 let _ = wc.canvas.draw_point(Point::new(top_left_x + x as i32, top_left_y + y as i32));
+                let _ = wc.canvas.draw_point(Point::new(top_left_x + (scaled_width - border)as i32 + x as i32, top_left_y + (scaled_height - border) as i32 + y as i32));
             }
         }
-    }
 
+        //sides
+        wc.canvas.set_draw_color(light);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x+border as i32,top_left_y,scaled_width - border,border));
+        
+        wc.canvas.set_draw_color(dark);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x,top_left_y+border as i32,border,scaled_height - border*2));
+
+        wc.canvas.set_draw_color(light);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x+(scaled_width - border) as i32 ,top_left_y+border as i32,border,scaled_height - border*2));
+
+        wc.canvas.set_draw_color(dark);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x ,top_left_y +(scaled_height - border) as i32,scaled_width - border,border));
+
+        //middle
+        wc.canvas.set_draw_color(ui_box.color);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x+border as i32,top_left_y+border as i32,scaled_width - border*2,scaled_height - border*2));
+
+    }
+}
+
+fn button_render(wc: &mut WindowContext){
+    let font: Font = wc.ttf_context.load_font("assets/fonts/Avenir Regular.ttf", (20.0 * wc.ui_scale) as u16).unwrap();
+    let window_width = wc.camera.window_width;
+    let window_height = wc.camera.window_height;
 
     for button in wc.buttons.clone() {
 
@@ -98,37 +132,42 @@ pub(crate) fn render(wc: &mut WindowContext) {
 
         let top_left_x = middle_x - (button.width as f32 * wc.ui_scale) as i32/2;
         let top_left_y = middle_y - (button.height as f32 * wc.ui_scale) as i32/2;
-
-        //background rectangle
-        let border = (4.0 * wc.ui_scale) as i32;
-        println!("{}",button.name);
+        let scaled_width = (button.width as f32 * wc.ui_scale) as u32;
+        let scaled_height = (button.height as f32 * wc.ui_scale) as u32;
+        let border = (BORDER * wc.ui_scale) as u32;
         let light = Color::RGB(button.color.r +10, button.color.g+10, button.color.b+10);
         let dark = Color::RGB(button.color.r-10, button.color.g-10, button.color.b-10);
 
-        for i in 0..(button.width as f32 * wc.ui_scale) as u32{
-            for j in 0..(button.height as f32 * wc.ui_scale) as u32{
-                let x = i as i32; //width
-                let y = j as i32; //height
-
-                if x == 0 || x == (button.width as f32 * wc.ui_scale) as i32-1 || y == 0 || y == (button.height as f32 * wc.ui_scale) as i32 -1 {
-                    wc.canvas.set_draw_color(Color::BLACK);
-                } else if 
-                (x as i32 - y as i32 > 0 && y < border) || 
-                (x + border > (button.width as f32 * wc.ui_scale) as i32 && x - y > (button.width as f32 * wc.ui_scale) as i32 - (button.height as f32 * wc.ui_scale) as i32) 
-                {
-                    wc.canvas.set_draw_color(light);
-                } else if 
-                (y as i32 - x as i32 > 0 && x < border) || 
-                (y + border > (button.height as f32 * wc.ui_scale) as i32 && y - x > (button.height as f32 * wc.ui_scale) as i32 - (button.width as f32 * wc.ui_scale) as i32) 
-                {
-                    wc.canvas.set_draw_color(dark);
-                } else {
+        for x in 0..border as i32{
+            for y in 0..border as i32{
+                if  x - y > 0{
+                    wc.canvas.set_draw_color(light)
+                } else if x - y < 0 {
+                    wc.canvas.set_draw_color(dark)
+                } else if x == y {
                     wc.canvas.set_draw_color(button.color);
-
                 }
                 let _ = wc.canvas.draw_point(Point::new(top_left_x + x as i32, top_left_y + y as i32));
+                let _ = wc.canvas.draw_point(Point::new(top_left_x + (scaled_width - border)as i32 + x as i32, top_left_y + (scaled_height - border) as i32 + y as i32));
             }
         }
+
+        //sides
+        wc.canvas.set_draw_color(light);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x+border as i32,top_left_y,scaled_width - border,border));
+        
+        wc.canvas.set_draw_color(dark);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x,top_left_y+border as i32,border,scaled_height - border*2));
+
+        wc.canvas.set_draw_color(light);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x+(scaled_width - border) as i32 ,top_left_y+border as i32,border,scaled_height - border*2));
+
+        wc.canvas.set_draw_color(dark);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x ,top_left_y +(scaled_height - border) as i32,scaled_width - border,border));
+
+        //middle
+        wc.canvas.set_draw_color(button.color);
+        let _ = wc.canvas.fill_rect(Rect::new(top_left_x+border as i32,top_left_y+border as i32,scaled_width - border*2,scaled_height - border*2));
 
         // text rendering
         let text_surface = font.render(&button.text).blended(Color::BLACK).unwrap();

@@ -67,7 +67,7 @@ pub(crate) fn init() -> (WindowContext, Map){
             y_offset: 0.0,
             zoom: 2.0,
             zoom_speed: 0.02,
-            movement_speed: 5.0,
+            movement_speed: 15.0,
             window_width: 1600.0,
             window_height: 1200.0,
             target_fps: 60,
@@ -122,7 +122,6 @@ pub fn run(wc: &mut WindowContext, mut map: &mut Map) -> bool {
     // Scale for correct window size
     wc.camera.window_width = wc.canvas.window().size().0 as f32*2.0;
     wc.camera.window_height = wc.canvas.window().size().1 as f32*2.0;
-    println!("1.3");
 
     //get user inputs
     if inputs(wc, &mut map) {
@@ -132,13 +131,10 @@ pub fn run(wc: &mut WindowContext, mut map: &mut Map) -> bool {
     let mut map_texture = texture_creator
     .create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size)
     .unwrap();
-    println!("1.4");
 
     //display map
     texture_creator.create_texture_streaming(PixelFormatEnum::RGBA32, map.size, map.size).unwrap();
-    println!("1.5");
-    println!("{}", map.size);
-    println!("{}", map.image.len());
+
 
     map_texture.update(None, &map.image, map.size as usize * 4).unwrap();
 
