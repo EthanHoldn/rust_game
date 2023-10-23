@@ -1,7 +1,7 @@
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 
-use crate::{fire, FIRE};
+use crate::{fire, FIRE, apparatus::Apparatus};
 
 
 #[derive(Copy, Clone)]
@@ -23,7 +23,6 @@ pub enum TileType {
     Road,
 }
 
-// Map struct 
 #[derive(Clone)]
 pub struct Map {
     pub size: u32, // Size of pixel array
@@ -31,6 +30,8 @@ pub struct Map {
     pub fire: Vec<u8>,
     pub active: Vec<bool>,
     pub image: Vec<u8>,
+    pub apparatuses: Vec<Apparatus>,
+    pub selected_apparatus: Option<Apparatus> ,
     pub marsh_thresh: f64,
     pub tree_thresh: f64,
     pub brush_thresh: f64,
@@ -38,6 +39,7 @@ pub struct Map {
     pub simulating: bool,
     pub modulator: u8,
 }
+
 
 impl Point {
     // Add a point to this point and return NEW point

@@ -1,11 +1,12 @@
+use rand::distributions::BernoulliError;
 use sdl2::{
     pixels::Color,
     rect::{Rect, Point},
     render::{Texture, TextureCreator},
-    ttf::Font,
+    ttf::Font, image::LoadTexture,
 };
 
-use crate::{display::WindowContext, fire, world::Map};
+use crate::{display::WindowContext, fire, world::Map, apparatus::{Apparatus, ApparatusType, self}};
 const BORDER: f32 = 4.0;
 pub enum UIScreens {
     MainMenu,
@@ -46,6 +47,8 @@ pub fn to_scrn(pos: f32, scale: f32) -> i32 {
     return (pos * scale) as i32;
 }
 
+
+
 pub(crate) fn render(wc: &mut WindowContext) {
     if let UIScreens::World = wc.screen {
         in_world_ui_render(wc);
@@ -55,11 +58,9 @@ pub(crate) fn render(wc: &mut WindowContext) {
 
     button_render(wc);
 
-
-    
-
 }
 
+///Renders the in game information overlay 
 fn in_world_ui_render(wc: &mut WindowContext){
     wc.canvas.set_draw_color(Color::RGB(80, 80, 80));
     let hight = (80.0 * wc.ui_scale) as u32;
@@ -70,6 +71,7 @@ fn in_world_ui_render(wc: &mut WindowContext){
 
 }
 
+///Renders the UI box behind the buttons
 fn ui_box_render(wc: &mut WindowContext){
     for ui_box in wc.ui_box.clone() {
         let window_width = wc.camera.window_width;
@@ -120,6 +122,7 @@ fn ui_box_render(wc: &mut WindowContext){
     }
 }
 
+///Renders the button with a background box and text
 fn button_render(wc: &mut WindowContext){
     let font: Font = wc.ttf_context.load_font("assets/fonts/Avenir Regular.ttf", (20.0 * wc.ui_scale) as u16).unwrap();
     let window_width = wc.camera.window_width;
@@ -195,6 +198,18 @@ fn button_render(wc: &mut WindowContext){
     }
 }
 
+pub(crate) fn mouse_icons(wc: &mut WindowContext, map: &mut Map){
+    let texture_creator = wc.canvas.texture_creator();
+    let bell205 = match texture_creator.load_texture("assets/Bell 205.png"){
+        Ok(texture) => texture,
+        Err(error) => {
+            eprintln!("Error loading texture: {}", error);
+            return;
+        }};
+    let _ = wc.canvas.copy(&bell205, None, Rect::new(wc,100,40,60));
+
+
+}
 pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
     let window_width = wc.camera.window_width;
     let window_height = wc.camera.window_height;
@@ -208,9 +223,26 @@ pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
             && y <= middle_y + ((button.height as f32 * wc.ui_scale) / 2.0) as i32
         {
             ui_distributor(&button.name, wc, map);
+            wc.im.left_click = false;
+            return;
         }
     }
-    wc.im.left_click = false
+    if let Some(apparatus) = &map.selected_apparatus{
+        println!("got here");
+        let x2 = (x as f32 /wc.camera.zoom) + wc.camera.x_offset;
+        let y2 = (y as f32 /wc.camera.zoom) + wc.camera.y_offset;
+        let mut apparatus_clone = apparatus.clone();
+        apparatus_clone.x = x2;
+        apparatus_clone.y = y2;
+        println!("x{}", x2);
+        println!("y{}", y2);
+
+        map.apparatuses.push(apparatus_clone);
+        map.selected_apparatus = None;
+        wc.im.left_click = false;
+        return;
+    }
+    
 }
 
 fn remove_button(name: &str, wc: &mut WindowContext) {
@@ -221,6 +253,7 @@ fn remove_button(name: &str, wc: &mut WindowContext) {
         }
     }
 }
+
 fn remove_box(name: &str, wc: &mut WindowContext) {
     for i in 0..wc.ui_box.len() {
         if wc.ui_box[i].name == name {
@@ -251,7 +284,12 @@ fn ui_distributor(name: &str, wc: &mut WindowContext, map: &mut Map) {
             remove_button("exit", wc);
             remove_box("main_menu", wc);
 
+            wc.buttons.push(Button { name: "order helicopter".to_owned(), text: "helicopter".to_owned(), x: 0, y: -50, x_align: 0.5, y_align: 1.0, width: 150, height: 40, color: Color::RGB(100, 100, 100)})
 
+
+        }
+        "order helicopter" => {
+            map.selected_apparatus = Some(Apparatus { x: 200.0, y: 100.0, angel: 0.5, name: ApparatusType::Bell205 })
         }
         _ => {}
     }

@@ -1,6 +1,7 @@
 extern crate sdl2;
 use sdl2::render::BlendMode;
-use crate::ui::{Button, render, UIScreens, UIBox};
+use crate::apparatus::{Apparatus, ApparatusType};
+use crate::ui::{Button, UIScreens, UIBox};
 use crate::world::{self, TileType, Map};
 //use crate::debug::debug;
 use crate::input_manager::inputs;
@@ -12,7 +13,7 @@ use sdl2::render::{Canvas, TextureCreator, Texture};
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::Window;
 use sdl2::EventPump;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 
 pub struct Camera {
@@ -91,6 +92,7 @@ pub(crate) fn init() -> (WindowContext, Map){
         size: 200,
         terrain: Vec::<TileType>::new(),
         image: Vec::<u8>::new(),
+        apparatuses: Vec::<Apparatus>::new(),
         marsh_thresh: 0.025,
         tree_thresh: 0.045,
         brush_thresh: 0.14,
@@ -100,11 +102,13 @@ pub(crate) fn init() -> (WindowContext, Map){
         active: Vec::<bool>::new(),
         simulating: false,
         modulator: 0,
+        selected_apparatus: None,
     };
 
     map.generate_layers();
     map.create_image();
     wc.canvas.set_blend_mode(BlendMode::Blend);
+    
     //main menu buttons
     wc.ui_box.push(UIBox { name: "main_menu".to_owned(), x: 0.5, y: 0.5, width: 220, height: 250, color: Color::RGB(80, 80, 80) });
     wc.buttons.push(Button { name: "new world".to_owned(), text: "New Game".to_owned(), x: 0, y: -90, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(100, 100, 100) });
@@ -113,6 +117,8 @@ pub(crate) fn init() -> (WindowContext, Map){
 
     wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0, y: 90, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(200, 100, 100) });
 
+    //TODO: remove
+    map.apparatuses.push(Apparatus { x: 100.0, y: 100.0, angel: 0.5, name: ApparatusType::Bell205 });
     return (wc, map);
 }
 
