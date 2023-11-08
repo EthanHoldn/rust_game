@@ -25,8 +25,13 @@ pub(crate) fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
             Event::MouseButtonUp {mouse_btn, x, y, .. } => {
                 if MouseButton::Left == mouse_btn {
                     wc.im.mouse_x = x;
-                    wc.im.mouse_y = y
+                    wc.im.mouse_y = y;
+                    wc.im.left_click = true;
                 }
+            }
+            Event::MouseMotion { x, y, .. } => {
+                    wc.im.mouse_x = x;
+                    wc.im.mouse_y = y
             }
             _ => {}
         }
@@ -91,7 +96,7 @@ pub(crate) fn inputs(wc: &mut WindowContext, map: &mut world::Map,) -> bool {
     // Quit on esc or ctrl
     if wc.im.key_states.contains(&Keycode::Escape){return  true;}
 
-    mouse_click(wc.im.mouse_x*2, wc.im.mouse_y*2, wc, map);
-
+    if wc.im.left_click{mouse_click(wc.im.mouse_x*2, wc.im.mouse_y*2, wc, map)}
+    wc.im.left_click = false;
     return false;
 }

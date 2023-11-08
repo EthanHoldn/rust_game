@@ -206,10 +206,13 @@ pub(crate) fn mouse_icons(wc: &mut WindowContext, map: &mut Map){
             eprintln!("Error loading texture: {}", error);
             return;
         }};
-    let _ = wc.canvas.copy(&bell205, None, Rect::new(wc,100,40,60));
+    if let Some(apparatus) = &map.selected_apparatus{
+        let _ = wc.canvas.copy(&bell205, None, Rect::new(wc.im.mouse_x*2,wc.im.mouse_y*2,40,60));
+    }
 
 
 }
+
 pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
     let window_width = wc.camera.window_width;
     let window_height = wc.camera.window_height;
@@ -227,20 +230,26 @@ pub fn mouse_click(x: i32, y: i32, wc: &mut WindowContext, map: &mut Map) {
             return;
         }
     }
+
+    let map_x = (x as f32 /wc.camera.zoom) - wc.camera.x_offset/wc.camera.zoom;
+    let map_y = (y as f32 /wc.camera.zoom) - wc.camera.y_offset/wc.camera.zoom;
     if let Some(apparatus) = &map.selected_apparatus{
         println!("got here");
-        let x2 = (x as f32 /wc.camera.zoom) + wc.camera.x_offset;
-        let y2 = (y as f32 /wc.camera.zoom) + wc.camera.y_offset;
+
+
         let mut apparatus_clone = apparatus.clone();
-        apparatus_clone.x = x2;
-        apparatus_clone.y = y2;
-        println!("x{}", x2);
-        println!("y{}", y2);
+        apparatus_clone.x = map_x;
+        apparatus_clone.y = map_y;
+
 
         map.apparatuses.push(apparatus_clone);
         map.selected_apparatus = None;
         wc.im.left_click = false;
         return;
+    } else {
+        for a in &map.apparatuses{
+            
+        }
     }
     
 }
@@ -289,7 +298,9 @@ fn ui_distributor(name: &str, wc: &mut WindowContext, map: &mut Map) {
 
         }
         "order helicopter" => {
-            map.selected_apparatus = Some(Apparatus { x: 200.0, y: 100.0, angel: 0.5, name: ApparatusType::Bell205 })
+            println!("order helicopter");
+            map.selected_apparatus = Some(Apparatus { x: 200.0, y: 100.0, angel: 0.5, name: ApparatusType::Bell205 });
+
         }
         _ => {}
     }

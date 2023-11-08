@@ -117,8 +117,6 @@ pub(crate) fn init() -> (WindowContext, Map){
 
     wc.buttons.push(Button { name: "exit".to_owned(), text: "Exit".to_owned(), x: 0, y: 90, x_align: 0.5, y_align: 0.5, width: 200, height: 50, color: Color::RGB(200, 100, 100) });
 
-    //TODO: remove
-    map.apparatuses.push(Apparatus { x: 100.0, y: 100.0, angel: 0.5, name: ApparatusType::Bell205 });
     return (wc, map);
 }
 
